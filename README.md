@@ -1,9 +1,11 @@
-# dungeon-io
+# dungeon-io (Fortgion)
 
-A mobile-first, single-player **MMORPG simulator** built with **Phaser 3 + TypeScript +
-Vite**. Build custom hero "catchers" (skills + attributes), send a party into dungeons,
-clear mob waves and bosses in **semi-automatic** combat, and grind loot. Runs entirely
-in the browser (no backend) and is hosted on GitHub Pages.
+A mobile-first, single-player **fortress-survival roguelite** built with **Phaser 3 +
+TypeScript + Vite**. Build a roster of heroes (skills, attributes, equipment, stars),
+develop a stronghold (terrain → buildings → walls → turrets), and defend the fortress
+core against **escalating raid waves** in **semi-automatic** combat. Survive as long as
+possible; on defeat, earn accumulating meta-bonuses that strengthen future runs. Runs
+entirely in the browser (no backend) and is hosted on GitHub Pages.
 
 ## Docs
 
