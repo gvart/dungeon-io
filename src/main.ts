@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/Boot';
 import { PreloadScene } from './scenes/Preload';
 import { MainMenuScene } from './scenes/MainMenu';
-import { HeroBuilderScene } from './scenes/HeroBuilder';
+import { FortressScene } from './scenes/Fortress';
 import { DungeonScene } from './scenes/Dungeon';
 import { ResultsScene } from './scenes/Results';
 
@@ -23,7 +23,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   // Pixel-art friendly defaults; flip to false later if using smooth art.
   pixelArt: false,
-  scene: [BootScene, PreloadScene, MainMenuScene, HeroBuilderScene, DungeonScene, ResultsScene],
+  scene: [BootScene, PreloadScene, MainMenuScene, FortressScene, DungeonScene, ResultsScene],
 };
 
 new Phaser.Game(config);

@@ -6,10 +6,12 @@ architecture.
 
 **Vision:** a mobile-first, single-player **fortress-survival roguelite** — build a
 roster of heroes (attributes, skills, equipment, stars), develop a stronghold (terrain
-→ buildings → walls → turrets), and defend a fortress **core** against escalating raid
-waves in semi-automatic combat. Survive as long as possible; on defeat, earn
-**accumulating meta-bonuses** that strengthen future runs. Static, client-side, hosted
-on GitHub Pages.
+→ buildings → walls → towers), and hold the fortress **capture point** against escalating
+raid waves in semi-automatic combat. There is no destructible "core": defenders fall in
+battle or **desert when morale breaks**, and the run is lost when no defenders remain and
+enemies **hold the capture point for 30 seconds** (the fortress is occupied). Survive as
+long as possible; on defeat, earn **accumulating meta-bonuses** that strengthen future
+runs. Static, client-side, hosted on GitHub Pages.
 
 ---
 
@@ -45,19 +47,21 @@ loads on a mobile/portrait viewport.
 
 ---
 
-## Phase 2 — Fortress core & build mode
+## Phase 2 — Fortress & build mode
 
 **Goal:** lay out and develop a stronghold.
 
 - A terrain/base grid and a **build menu** for placing structures.
-- Placeable **structures**: walls, turrets, and support buildings (data-driven in
-  `src/data`).
-- A central **fortress core** with HP — the thing that must not fall.
+- Placeable **passive structures**: walls, gates, and towers (data-driven in `src/data`).
+  Hero-operated weapon emplacements (turrets/crossbows) arrive with heroes/combat later.
+- A central, **indestructible capture point** (the stronghold) — the location enemies
+  must occupy to win. It has **no HP**; the loss model is morale/desertion + occupation
+  (see Phase 4).
 - Basic resources to gate building.
-- Persist the fortress layout to `localStorage`.
+- Persist the fortress layout to `localStorage` (compact, versioned save).
 
-**Done when:** you can lay out a fortress, place structures around the core, reload the
-page, and the layout persists.
+**Done when:** you can lay out a fortress, place structures around the capture point,
+reload the page, and the layout persists.
 
 ---
 
@@ -81,14 +85,16 @@ reload, and everything persists.
 **Goal:** the heart of the game — a single raid wave attacking the fortress.
 
 - A wave of enemies advances on the fortress.
-- Turrets and stationed heroes auto-attack; the player taps **active-skill buttons**
-  (hero + fortress abilities) with cooldowns.
-- Damage, targeting, health bars; **win** when the wave is cleared, **lose** when the
-  core is destroyed.
+- Stationed heroes (and later hero-operated emplacements) auto-attack; the player taps
+  **active-skill buttons** (hero + fortress abilities) with cooldowns.
+- Damage, targeting, health bars; **morale** that drops under pressure — heroes can
+  **desert** the battlefield when it breaks.
+- **Win** when the wave is cleared; **lose** when no defenders remain and enemies hold
+  the capture point for 30 seconds (occupation).
 - Combat logic data-driven and unit-testable; randomness isolated/seedable.
 
 **Done when:** a raid wave plays out against your fortress, the player can tap skills to
-swing the outcome, and it resolves to win or lose.
+swing the outcome, and it resolves to win or loss (occupation).
 
 ---
 
@@ -99,10 +105,10 @@ swing the outcome, and it resolves to win or lose.
 - Sequenced **escalating waves** with random-but-balanced enemy composition and
   difficulty scaling over the run.
 - A short build/repair phase between waves.
-- The run ends when the core falls; a **Results** screen shows the survival score
-  (waves / time survived).
+- The run ends when the fortress is **occupied** (capture point held with no defenders
+  left); a **Results** screen shows the survival score (waves / time survived).
 
-**Done when:** a full run escalates wave over wave until the fortress falls, and a
+**Done when:** a full run escalates wave over wave until the fortress is occupied, and a
 survival score is shown.
 
 ---

@@ -23,6 +23,11 @@ export const HEX = {
   panelBorder: 0x3a4660,
   buttonFill: 0x2c3a52,
   buttonFillDown: 0x223047,
+  // Fortress build mode: grid cells, selection highlight, invalid-tap flash.
+  gridCell: 0x141a26,
+  gridLine: 0x2b3550,
+  selected: 0xf4d35e,
+  invalid: 0xc0392b,
 } as const;
 
 /**

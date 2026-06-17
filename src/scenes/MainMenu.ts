@@ -12,19 +12,19 @@ export class MainMenuScene extends BaseScene {
   create(): void {
     this.enter();
 
-    this.heading('DUNGEON-IO', this.cy - 340, FONT.title);
-    this.subtitle('Build your catchers. Clear the dungeon.', this.cy - 250);
+    this.heading('FORTGION', this.cy - 340, FONT.title);
+    this.subtitle('Build your fortress. Outlast the raids.', this.cy - 250);
 
     makeButton(this, {
       x: this.cx,
       y: this.cy,
       label: 'Play',
       variant: 'primary',
-      onClick: () => this.goTo('HeroBuilder'),
+      onClick: () => this.goTo('Fortress'),
     });
 
     this.add
-      .text(this.cx, GAME_HEIGHT - 60, 'Phase 1 — mobile shell', {
+      .text(this.cx, GAME_HEIGHT - 60, 'Phase 2 — fortress & build mode', {
         fontFamily: 'sans-serif',
         fontSize: FONT.small,
         color: '#5c6773',
