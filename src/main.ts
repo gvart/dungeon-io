@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/Boot';
+import { PreloadScene } from './scenes/Preload';
+import { MainMenuScene } from './scenes/MainMenu';
+import { HeroBuilderScene } from './scenes/HeroBuilder';
+import { DungeonScene } from './scenes/Dungeon';
+import { ResultsScene } from './scenes/Results';
 
 // Portrait design resolution. The Scale Manager FITs this into the device
 // viewport, so we author against a fixed canvas and let Phaser letterbox.
@@ -18,7 +23,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   // Pixel-art friendly defaults; flip to false later if using smooth art.
   pixelArt: false,
-  scene: [BootScene],
+  scene: [BootScene, PreloadScene, MainMenuScene, HeroBuilderScene, DungeonScene, ResultsScene],
 };
 
 new Phaser.Game(config);

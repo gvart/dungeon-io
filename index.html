@@ -15,6 +15,13 @@
       :root {
         color-scheme: dark;
       }
+      /* Bundled CC0 font (Kenney Future). Relative URL resolves under the
+         GitHub Pages base path. See assets/CREDITS.md. */
+      @font-face {
+        font-family: 'Kenney Future';
+        src: url('assets/fonts/KenneyFuture.ttf') format('truetype');
+        font-display: swap;
+      }
       html,
       body {
         margin: 0;
@@ -34,10 +41,52 @@
         width: 100%;
         height: 100%;
       }
+      /* Portrait-locked: ask touch users to rotate when in landscape. */
+      #rotate-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+        padding: 24px;
+        background: #0b0e14;
+        color: #e8ecf1;
+        font-family: 'Kenney Future', 'Trebuchet MS', sans-serif;
+      }
+      #rotate-overlay .glyph {
+        font-size: 64px;
+        animation: rotate-hint 1.6s ease-in-out infinite;
+      }
+      #rotate-overlay .msg {
+        font-size: 22px;
+        color: #9aa5b1;
+      }
+      @keyframes rotate-hint {
+        0%,
+        100% {
+          transform: rotate(-12deg);
+        }
+        50% {
+          transform: rotate(78deg);
+        }
+      }
+      @media (orientation: landscape) and (pointer: coarse) {
+        #rotate-overlay {
+          display: flex;
+        }
+      }
     </style>
   </head>
   <body>
     <div id="game"></div>
+    <div id="rotate-overlay" aria-hidden="true">
+      <div class="glyph">📱</div>
+      <div class="msg">Rotate your device to portrait</div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
