@@ -28,7 +28,10 @@ export class Button extends Phaser.GameObjects.Container {
   private gfx?: Phaser.GameObjects.Graphics;
   private readonly btnW: number;
   private readonly btnH: number;
-  private pressed = false;
+  /** Armed once a press starts on this button; survives a stray pointerout. */
+  private armed = false;
+  /** Current pressed *visual* state (decoupled from `armed`). */
+  private pressedVisual = false;
 
   constructor(scene: Phaser.Scene, config: ButtonConfig) {
     super(scene, config.x, config.y);
@@ -87,25 +90,44 @@ export class Button extends Phaser.GameObjects.Container {
       useHandCursor: true,
     });
 
-    this.on('pointerover', () => !this.pressed && this.setScale(1.03));
+    this.on('pointerover', () => {
+      if (!this.armed) this.setScale(1.03);
+    });
+    // A tap on a touch screen frequently emits a stray pointerout between down
+    // and up (finger micro-movement). Reset the visuals but stay *armed* so the
+    // following pointerup still counts as a click — otherwise taps silently
+    // do nothing on mobile.
     this.on('pointerout', () => {
       this.setScale(1);
-      this.setPressed(false);
+      this.showPressed(false);
     });
-    this.on('pointerdown', () => this.setPressed(true));
+    this.on('pointerdown', () => {
+      this.armed = true;
+      this.showPressed(true);
+    });
+    // pointerup only fires on the object when released over it, so an armed
+    // release here is a real click.
     this.on('pointerup', () => {
-      const wasPressed = this.pressed;
       this.setScale(1);
-      this.setPressed(false);
-      if (wasPressed) config.onClick();
+      this.showPressed(false);
+      if (this.armed) {
+        this.armed = false;
+        config.onClick();
+      }
+    });
+    // Released elsewhere after pressing here: cancel without firing.
+    this.on('pointerupoutside', () => {
+      this.armed = false;
+      this.showPressed(false);
     });
 
     scene.add.existing(this);
   }
 
-  private setPressed(pressed: boolean): void {
-    if (this.pressed === pressed) return;
-    this.pressed = pressed;
+  /** Swap to the pressed/unpressed visual (independent of the armed state). */
+  private showPressed(pressed: boolean): void {
+    if (this.pressedVisual === pressed) return;
+    this.pressedVisual = pressed;
     if (this.nineUp && this.ninePressed) {
       this.nineUp.setVisible(!pressed);
       this.ninePressed.setVisible(pressed);
