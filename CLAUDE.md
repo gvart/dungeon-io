@@ -10,10 +10,12 @@ You command a small roster of **heroes** (with attributes, skills, equipment, st
 promotion, and leveling) defending a **stronghold** against escalating raids.
 
 Between raids you **develop the fortress** — bare terrain → buildings → walls →
-turrets, like a real fort — and **build your heroes**. Raids arrive as **escalating
+towers, like a real fort — and **build your heroes**. Raids arrive as **escalating
 waves** of enemies whose types and counts vary and ramp up over time (random but
-balanced). The **run ends when the fortress core falls**. The goal is to **survive as
-long as possible**.
+balanced). There is **no destructible core**: heroes fall in battle or **desert when
+morale breaks**, and the **run ends when no defenders remain and enemies hold the
+fortress capture point for 30 seconds** (the fortress is occupied). The goal is to
+**survive as long as possible**.
 
 Each playthrough is a **roguelite run**: on defeat, your performance converts to
 **persistent meta-currency and accumulating bonuses** that make future runs stronger.
@@ -44,15 +46,18 @@ saves to `localStorage`.
 
 A **fortress-defense survival** loop:
 
-- The player builds and develops a **fortress** with a central **core** (the thing that
-  must not fall): place walls, turrets, and support buildings on a base layout.
-- Heroes are stationed to defend the fortress alongside automatic turrets.
-- Waves of enemies **raid** the fortress; basic attacks (heroes + turrets) are
-  automatic, and the player taps **active-skill buttons** (with cooldowns) and times
-  them for better results — this is the semi-auto hook.
+- The player builds and develops a **fortress** with a central, indestructible **capture
+  point** (the location enemies must occupy to win): place walls, gates, and towers on a
+  base layout.
+- Heroes are stationed to defend the fortress; hero-operated weapon emplacements
+  (turrets/crossbows) come later.
+- Waves of enemies **raid** the fortress; heroes auto-attack, and the player taps
+  **active-skill buttons** (with cooldowns) and times them for better results — this is
+  the semi-auto hook.
 - Between waves the player spends loot/resources to **develop the fortress and heroes**.
-- Raids **escalate** wave over wave; the run ends when the core falls. Performance feeds
-  **meta-progression** for the next run.
+- Raids **escalate** wave over wave; the run ends when the fortress is **occupied** —
+  defenders are killed or desert (low morale), then enemies hold the capture point for
+  30 seconds. Performance feeds **meta-progression** for the next run.
 
 This format is chosen because it is simple to asset-source and ship on mobile while
 still delivering the fortress/raid/loot/survival fantasy. It is a documented default,
@@ -87,18 +92,19 @@ dungeon-io/
   heroes (star promotion). Heroes and skills are defined as data in `src/data`, not
   hard-coded into entities.
 - **Fortress development:** a terrain/base grid where the player places **structures**
-  (walls, turrets, support buildings) around a central **core** with HP. Building and
-  upgrading costs resources. Layout is data-driven.
-- **Semi-auto raid combat:** turrets and stationed heroes auto-attack incoming enemies;
-  the player manually triggers active skills (hero + fortress abilities) with cooldowns;
-  damage, targeting, health, and win (wave cleared) / lose (core destroyed) resolution.
-  Keep it data-driven and unit-testable.
+  (walls, gates, towers) around a central, indestructible **capture point**. Building and
+  upgrading costs resources. Layout is data-driven. (Hero-operated emplacements come with
+  the hero/combat phases.)
+- **Semi-auto raid combat:** stationed heroes auto-attack incoming enemies; the player
+  manually triggers active skills (hero + fortress abilities) with cooldowns; damage,
+  targeting, health, **morale/desertion**, and win (wave cleared) / lose (capture point
+  occupied 30s with no defenders left) resolution. Keep it data-driven and unit-testable.
 - **Escalating raid / wave system:** sequenced waves with random-but-balanced enemy
   composition and difficulty that scales over the run. Isolate randomness (seedable) so
   raids are reproducible and balance is testable.
-- **Survival run & meta-progression:** a run ends when the core falls; survival score
-  (waves/time survived) converts to **persistent meta-currency**. Meta-upgrades grant
-  **accumulating bonuses** that carry into every future run (roguelite loop).
+- **Survival run & meta-progression:** a run ends when the fortress is occupied; survival
+  score (waves/time survived) converts to **persistent meta-currency**. Meta-upgrades
+  grant **accumulating bonuses** that carry into every future run (roguelite loop).
 - **Save system:** serialize meta-progression (persistent) and the current run (heroes,
   fortress layout, inventory, wave progress) to `localStorage`; version the save format
   so it can be migrated later.
