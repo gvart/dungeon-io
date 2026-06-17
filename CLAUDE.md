@@ -11,10 +11,10 @@ collect **loot drops** that feed back into building stronger heroes.
 
 Gameplay is **semi-automatic**: the party auto-advances and basic attacks fire on
 their own, but the player manually times **active skills** (tapping skill buttons) to
-get better results. You *can* play hands-off, but skilled manual play wins harder
+get better results. You _can_ play hands-off, but skilled manual play wins harder
 fights.
 
-It is a **single-player simulation** — it *feels* like an MMORPG (idle/auto combat,
+It is a **single-player simulation** — it _feels_ like an MMORPG (idle/auto combat,
 progression, loot grind) but runs entirely in the browser with no server. All progress
 saves to `localStorage`.
 

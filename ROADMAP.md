@@ -4,7 +4,7 @@ Phased plan for building the game. Each phase is a **shippable, verifiable incre
 that builds on the previous one. See `CLAUDE.md` for stack, conventions, and
 architecture.
 
-**Vision:** a mobile-first, single-player MMORPG *simulator* — build hero "catchers"
+**Vision:** a mobile-first, single-player MMORPG _simulator_ — build hero "catchers"
 (skills + attributes), send a party into dungeons, clear mob waves and bosses in
 semi-automatic combat, and grind loot to build stronger heroes. Static, client-side,
 hosted on GitHub Pages.
