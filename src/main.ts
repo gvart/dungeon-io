@@ -26,4 +26,9 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BootScene, PreloadScene, MainMenuScene, FortressScene, DungeonScene, ResultsScene],
 };
 
-new Phaser.Game(config);
+// Boot only when the real mount point exists. This keeps unit tests safe: they
+// import scenes for their GAME_WIDTH/HEIGHT constants (which evaluates this
+// module) and boot their own headless game, without a stray game booting here.
+if (typeof document !== 'undefined' && document.getElementById('game')) {
+  new Phaser.Game(config);
+}
