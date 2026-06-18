@@ -1,4 +1,4 @@
-import { GAME_HEIGHT } from '../main';
+import { GAME_HEIGHT } from '../dimensions';
 import { FONT } from '../ui/theme';
 import { makeButton } from '../ui/Button';
 import { BaseScene } from './BaseScene';

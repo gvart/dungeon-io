@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../main';
+import { GAME_HEIGHT, GAME_WIDTH } from '../dimensions';
 import { COLORS, FONT, FONT_FAMILY, HEX, TEX } from '../ui/theme';
 
 /**

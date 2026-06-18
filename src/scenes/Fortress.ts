@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT } from '../main';
+import { GAME_HEIGHT } from '../dimensions';
 import { COLORS, FONT, FONT_FAMILY, HEX } from '../ui/theme';
 import { makeButton, type Button } from '../ui/Button';
 import { BuildPanel, type BuildSelection, PANEL_TOP } from '../ui/BuildPanel';

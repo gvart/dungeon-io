@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../../main';
+import { GAME_HEIGHT, GAME_WIDTH } from '../../dimensions';
 
 /**
  * Pan/zoom controller for the map camera. Owns bounds and zoom clamping; the
