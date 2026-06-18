@@ -38,6 +38,8 @@ export interface StructureDef {
   unique?: boolean;
   /** Whether it can be removed/refunded (defaults true). */
   removable?: boolean;
+  /** Whether heroes can walk through this cell (gates). Absent = blocks pathing. */
+  passable?: boolean;
   /** Fill color for the drawn fallback (HEX number). */
   fillColor: number;
   /** Texture key for sprite art (drawn fallback used if absent). */
@@ -84,6 +86,7 @@ export const STRUCTURES: Record<string, StructureDef> = {
     category: 'gate',
     cost: 20,
     requiredLevel: 1,
+    passable: true,
     fillColor: 0x8b5a2b,
     texKey: 'struct-gate',
     desc: 'A defended passage in the wall.',

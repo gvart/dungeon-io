@@ -32,8 +32,13 @@ import {
 export const GRID_COLS = MAP_COLS;
 export const GRID_ROWS = MAP_ROWS;
 
-/** A grid cell: either empty (`null`) or holding one structure. */
-export type FortressCell = { structureId: string } | null;
+/**
+ * A grid cell: either empty (`null`) or holding one structure. A freshly placed
+ * structure is a *construction site* with `build` in `[0, 1)`; once it reaches 1
+ * the field is dropped and the cell is a plain `{ structureId }` (so completed
+ * structures serialize compactly and match older saves).
+ */
+export type FortressCell = { structureId: string; build?: number } | null;
 
 export interface FortressState {
   cols: number;
@@ -122,7 +127,9 @@ export function canPlace(
 }
 
 /**
- * Place a structure, deducting its cost. Mutates and returns whether it placed.
+ * Place a structure as a construction site (`build: 0`), deducting its cost. A
+ * passive trickle plus hero assistance complete it over time. Mutates and
+ * returns whether it placed.
  */
 export function placeStructure(
   state: FortressState,
@@ -133,9 +140,43 @@ export function placeStructure(
 ): boolean {
   if (!canPlace(state, terrain, col, row, defId)) return false;
   const def = getStructure(defId)!;
-  state.cells[indexOf(state, col, row)] = { structureId: defId };
+  state.cells[indexOf(state, col, row)] = { structureId: defId, build: 0 };
   state.resources -= def.cost;
   return true;
+}
+
+/** Build progress of a cell in `[0, 1]`: 1 when complete/absent, 0 when empty. */
+export function structureBuildProgress(cell: FortressCell): number {
+  if (cell === null) return 0;
+  return cell.build ?? 1;
+}
+
+/** Whether the cell at (col,row) holds a structure that is still being built. */
+export function isUnderConstruction(state: FortressState, col: number, row: number): boolean {
+  const cell = getCell(state, col, row);
+  return cell !== null && cell.build !== undefined && cell.build < 1;
+}
+
+/**
+ * Advance the construction of the structure at (col,row) by `amount` (clamped to
+ * `[0, 1]`). Completing it drops the `build` field. Returns the new progress, or
+ * 0 if the cell is empty / already complete.
+ */
+export function advanceBuild(
+  state: FortressState,
+  col: number,
+  row: number,
+  amount: number
+): number {
+  const cell = getCell(state, col, row);
+  if (cell === null || cell.build === undefined) return cell ? 1 : 0;
+  const next = cell.build + Math.max(0, amount);
+  if (next >= 1) {
+    delete cell.build;
+    return 1;
+  }
+  cell.build = next;
+  return next;
 }
 
 /**

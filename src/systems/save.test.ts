@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { STARTING_RESOURCES, STRONGHOLD_ID } from '../data/structures';
-import { createInitialFortress, getCell, placeStructure } from './grid';
+import { advanceBuild, createInitialFortress, getCell, placeStructure } from './grid';
 import { type TerrainType } from './terrain';
 import {
   clearSave,
@@ -58,8 +58,36 @@ describe('serialize / deserialize', () => {
     expect(back!.seed).toBe(99);
     expect(back!.level).toBe(2);
     expect(back!.cleared).toEqual([5]);
-    expect(getCell(back!, 2, 2)).toEqual({ structureId: STRONGHOLD_ID });
-    expect(getCell(back!, 0, 0)).toEqual({ structureId: 'wall' });
+    // Freshly placed structures are build sites (build: 0) and round-trip as such.
+    expect(getCell(back!, 2, 2)).toEqual({ structureId: STRONGHOLD_ID, build: 0 });
+    expect(getCell(back!, 0, 0)).toEqual({ structureId: 'wall', build: 0 });
+  });
+
+  it('round-trips in-progress and completed construction', () => {
+    const s = createInitialFortress(1);
+    const t = grassTerrain(s.cols, s.rows);
+    placeStructure(s, t, 1, 1, 'wall'); // build: 0
+    advanceBuild(s, 1, 1, 0.5); // build: 0.5
+    placeStructure(s, t, 3, 3, 'wall');
+    advanceBuild(s, 3, 3, 1); // complete -> plain {structureId}
+    const back = deserialize(serialize(s))!;
+    expect(getCell(back, 1, 1)).toEqual({ structureId: 'wall', build: 0.5 });
+    expect(getCell(back, 3, 3)).toEqual({ structureId: 'wall' });
+  });
+
+  it('loads legacy length-3 placed tuples as completed structures', () => {
+    const back = deserialize({
+      v: 2,
+      cols: 16,
+      rows: 24,
+      resources: 100,
+      level: 1,
+      seed: 1,
+      cleared: [],
+      placed: [[0, 0, 'wall']],
+    })!;
+    expect(back).not.toBeNull();
+    expect(getCell(back, 0, 0)).toEqual({ structureId: 'wall' });
   });
 
   it('rejects wrong-version or malformed data', () => {
@@ -77,7 +105,7 @@ describe('saveFortress / loadFortress', () => {
     saveFortress(s);
     const loaded = loadFortress();
     expect(loaded).not.toBeNull();
-    expect(getCell(loaded!, 2, 1)).toEqual({ structureId: 'wall' });
+    expect(getCell(loaded!, 2, 1)).toEqual({ structureId: 'wall', build: 0 });
     expect(loaded!.seed).toBe(7);
   });
 

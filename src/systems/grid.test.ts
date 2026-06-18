@@ -7,6 +7,7 @@ import {
   STRUCTURES,
 } from '../data/structures';
 import {
+  advanceBuild,
   canPlace,
   clearObstacle,
   createInitialFortress,
@@ -14,9 +15,11 @@ import {
   getCell,
   hasStructure,
   indexOf,
+  isUnderConstruction,
   levelUp,
   placeStructure,
   removeStructure,
+  structureBuildProgress,
 } from './grid';
 import { type TerrainType } from './terrain';
 
@@ -41,7 +44,7 @@ describe('canPlace / placeStructure', () => {
     const s = createInitialFortress(1);
     const t = grass(s);
     expect(placeStructure(s, t, 2, 2, STRONGHOLD_ID)).toBe(true);
-    expect(getCell(s, 2, 2)).toEqual({ structureId: STRONGHOLD_ID });
+    expect(getCell(s, 2, 2)).toEqual({ structureId: STRONGHOLD_ID, build: 0 });
     expect(s.resources).toBe(STARTING_RESOURCES - STRUCTURES[STRONGHOLD_ID].cost);
   });
 
@@ -118,7 +121,35 @@ describe('removeStructure', () => {
     const t = grass(s);
     placeStructure(s, t, 2, 2, STRONGHOLD_ID);
     expect(removeStructure(s, 2, 2)).toBe(false);
-    expect(getCell(s, 2, 2)).toEqual({ structureId: STRONGHOLD_ID });
+    expect(getCell(s, 2, 2)).toEqual({ structureId: STRONGHOLD_ID, build: 0 });
+  });
+});
+
+describe('construction', () => {
+  it('places structures as a build site and completes via advanceBuild', () => {
+    const s = createInitialFortress(1);
+    const t = grass(s);
+    placeStructure(s, t, 2, 2, 'wall');
+    expect(isUnderConstruction(s, 2, 2)).toBe(true);
+    expect(structureBuildProgress(getCell(s, 2, 2))).toBe(0);
+
+    expect(advanceBuild(s, 2, 2, 0.4)).toBeCloseTo(0.4);
+    expect(isUnderConstruction(s, 2, 2)).toBe(true);
+
+    // Overshoot completes and drops the build field (plain {structureId}).
+    expect(advanceBuild(s, 2, 2, 1)).toBe(1);
+    expect(isUnderConstruction(s, 2, 2)).toBe(false);
+    expect(getCell(s, 2, 2)).toEqual({ structureId: 'wall' });
+    expect(structureBuildProgress(getCell(s, 2, 2))).toBe(1);
+  });
+
+  it('advanceBuild is a no-op on empty or already-complete cells', () => {
+    const s = createInitialFortress(1);
+    const t = grass(s);
+    expect(advanceBuild(s, 0, 0, 0.5)).toBe(0); // empty
+    placeStructure(s, t, 1, 1, 'wall');
+    advanceBuild(s, 1, 1, 1); // complete
+    expect(advanceBuild(s, 1, 1, 0.5)).toBe(1); // stays complete
   });
 });
 
