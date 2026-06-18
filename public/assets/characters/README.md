@@ -1,12 +1,14 @@
 # Hero character art
 
-Drop the hero pawn spritesheet here as **`heroes.png`**.
+`heroes.png` is the **Kenney "Roguelike Characters"** spritesheet
+(`roguelikeChar_transparent.png`, CC0) — a 54×12 grid of **16×16** tiles with **1px**
+spacing (loaded in `src/scenes/Preload.ts`).
 
-- Source: [Kenney — Roguelike Characters](https://kenney.nl/assets/roguelike-characters) (CC0)
-- File: copy `roguelikeChar_transparent.png` from the pack and rename it to `heroes.png`
-- Layout expected by the loader (`src/scenes/Preload.ts`): **16×16** frames, `margin: 0`,
-  `spacing: 1`
+Each hero is given a distinct character tile by
+`src/scenes/fortress/heroAppearance.ts` (the `CHARACTER_FRAMES` list points at the
+detailed humanoid tiles in the sheet's first two columns). `HeroSprite` renders the tile
+and animates it with a hop tween — the pack's characters are single static tiles, so there
+are no walk frames.
 
-This file is optional. If it's absent the game falls back to drawn colored discs, so the
-build still works. Once the PNG is in place the frame indices for the idle/walk animations
-may be fine-tuned in `Preload.buildHeroAnims()`.
+If this file is ever removed the game still runs: `HeroSprite` falls back to a drawn
+colored disc. See `assets/CREDITS.md` for license/source.

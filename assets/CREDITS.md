@@ -38,10 +38,11 @@ license requires it). Record each asset here before committing it.
 | `public/assets/characters/heroes.png` | [Kenney — Roguelike Characters](https://kenney.nl/assets/roguelike-characters) | Kenney.nl | CC0 1.0 | 16×16 top-down pawns, 1px tile spacing |
 
 > **Hero pawns:** the on-map heroes use this top-down character spritesheet
-> (`roguelikeChar_transparent.png` from the pack, saved as `heroes.png`). Loaded as
-> a 16×16 spritesheet with 1px spacing; `Preload` builds idle/walk animations and
-> `HeroSprite` tints each pawn for variety. The file is **optional** — if it's
-> missing the game falls back to drawn colored discs, so it still builds and runs.
+> (`roguelikeChar_transparent.png` from the pack, copied unmodified to `heroes.png`).
+> Loaded as a 16×16 spritesheet with 1px spacing; each hero is assigned a distinct
+> humanoid tile (`src/scenes/fortress/heroAppearance.ts`) and animated with a hop
+> tween. If the file is removed the game falls back to drawn colored discs, so it
+> still builds and runs.
 
 ## Approved sources
 

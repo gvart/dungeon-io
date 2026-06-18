@@ -34,6 +34,7 @@ import { isWalkable } from '../systems/pathfind';
 import { TerrainRenderer } from './fortress/TerrainRenderer';
 import { MapCamera } from './fortress/MapCamera';
 import { HeroSprite } from './fortress/HeroSprite';
+import { HeroAppearances } from './fortress/heroAppearance';
 import { BaseScene } from './BaseScene';
 
 /** On-screen size of a map cell (matches the 64px source tiles, 1:1). */
@@ -87,6 +88,8 @@ export class FortressScene extends BaseScene {
   // Hero/garrison layer.
   private heroWorld!: HeroWorld;
   private heroSprites = new Map<string, HeroSprite>();
+  /** Hands each hero a unique character tile from the spritesheet. */
+  private readonly heroAppearance = new HeroAppearances();
   private heroPanel!: HeroPanel;
   private arrivalPrompt!: ArrivalPrompt;
   private footerButtons: Button[] = [];
@@ -230,7 +233,7 @@ export class FortressScene extends BaseScene {
 
   private createHeroSprites(): void {
     for (const hero of this.heroWorld.heroes) {
-      const sprite = new HeroSprite(this, hero, HERO_RADIUS);
+      const sprite = new HeroSprite(this, hero, HERO_RADIUS, this.heroAppearance.frameFor(hero.id));
       this.mapLayer.add(sprite);
       this.heroSprites.set(hero.id, sprite);
     }
@@ -545,7 +548,7 @@ export class FortressScene extends BaseScene {
     hero.col = col;
     hero.row = row;
     this.heroWorld.heroes.push(hero);
-    const sprite = new HeroSprite(this, hero, HERO_RADIUS);
+    const sprite = new HeroSprite(this, hero, HERO_RADIUS, this.heroAppearance.frameFor(hero.id));
     this.mapLayer.add(sprite);
     this.heroSprites.set(hero.id, sprite);
     this.arrivalPrompt.hide();

@@ -62,12 +62,6 @@ export const TEX = {
   heroSheet: 'hero-sheet',
 } as const;
 
-/** Hero pawn animation keys (built in Preload from {@link TEX.heroSheet}). */
-export const ANIM = {
-  heroIdle: 'hero-idle',
-  heroWalk: 'hero-walk',
-} as const;
-
 /**
  * Terrain tile texture keys → `TERRAIN_TEX[type]` lists the loaded variants for a
  * terrain type. The renderer picks one deterministically per cell. Roads are

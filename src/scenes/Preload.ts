@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../main';
-import { ANIM, COLORS, FONT, FONT_FAMILY, HEX, TEX, TERRAIN_FILES } from '../ui/theme';
+import { COLORS, FONT, FONT_FAMILY, HEX, TEX, TERRAIN_FILES } from '../ui/theme';
 import { STRUCTURES } from '../data/structures';
 
 const UI = 'assets/ui';
@@ -83,7 +83,7 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
-    this.buildHeroAnims();
+    this.configureHeroTexture();
     // Ensure the webfont is ready before the menu renders text with it.
     try {
       await document.fonts.load(`16px ${FONT_FAMILY}`);
@@ -94,25 +94,14 @@ export class PreloadScene extends Phaser.Scene {
     this.scene.start('MainMenu');
   }
 
-  /** Build hero idle/walk animations when the spritesheet loaded (else skip). */
-  private buildHeroAnims(): void {
+  /**
+   * The roguelike pawns are single 16×16 tiles (one per character, no walk
+   * frames), so there are no sprite animations to build — heroes animate via a
+   * hop tween in HeroSprite. Just switch the texture to NEAREST so the upscale
+   * to the on-map pawn size stays crisp. No-op when the art is absent.
+   */
+  private configureHeroTexture(): void {
     if (!this.textures.exists(TEX.heroSheet)) return;
-    // Crisp upscale from 16px source to the on-map pawn size.
     this.textures.get(TEX.heroSheet).setFilter(Phaser.Textures.FilterMode.NEAREST);
-
-    const total = this.textures.get(TEX.heroSheet).frameTotal;
-    const last = Math.max(0, Math.min(1, total - 1));
-    this.anims.create({
-      key: ANIM.heroIdle,
-      frames: [{ key: TEX.heroSheet, frame: 0 }],
-      frameRate: 1,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: ANIM.heroWalk,
-      frames: this.anims.generateFrameNumbers(TEX.heroSheet, { start: 0, end: last }),
-      frameRate: 6,
-      repeat: -1,
-    });
   }
 }
