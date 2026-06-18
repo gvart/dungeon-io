@@ -162,15 +162,17 @@ export class FortressScene extends BaseScene {
         const isCenter = def.category === 'center';
 
         // Prefer real sprite art when the texture loaded; otherwise fall back to
-        // the drawn colored shape + label so the build mode always renders. The
-        // icons are white silhouettes, so tint them with the structure color to
-        // keep the wall/gate/tower/stronghold coding.
+        // the drawn colored shape + label so the build mode always renders.
+        // Walls are full tiles that fill the cell so they read as a continuous
+        // rampart; other structures keep their aspect ratio inside the cell.
         if (def.texKey && this.textures.exists(def.texKey)) {
-          const sprite = this.add
-            .image(x, y, def.texKey)
-            .setDisplaySize(size, size)
-            .setOrigin(0.5)
-            .setTint(def.fillColor);
+          const sprite = this.add.image(x, y, def.texKey).setOrigin(0.5);
+          if (def.category === 'wall') {
+            sprite.setDisplaySize(CELL, CELL);
+          } else {
+            const scale = Math.min(size / sprite.width, size / sprite.height);
+            sprite.setScale(scale);
+          }
           this.sprites.push(sprite);
           continue;
         }

@@ -6,22 +6,21 @@ license requires it). Record each asset here before committing it.
 > Runtime-loaded files live in `public/assets/` (served as-is by Vite). The table
 > below tracks their source and license.
 
-| Asset                                     | Source                                                                               | Author     | License   | Notes                            |
-| ----------------------------------------- | ------------------------------------------------------------------------------------ | ---------- | --------- | -------------------------------- |
-| `public/assets/ui/button_long_*.png`      | [Kenney UI Pack — RPG Expansion](https://kenney.nl/assets/ui-pack-rpg-expansion)     | Kenney.nl  | CC0 1.0   | Blue/grey long buttons + pressed |
-| `public/assets/ui/panel_brown.png`        | [Kenney UI Pack — RPG Expansion](https://kenney.nl/assets/ui-pack-rpg-expansion)     | Kenney.nl  | CC0 1.0   | Nine-slice content panel         |
-| `public/assets/ui/panelInset_beige.png`   | [Kenney UI Pack — RPG Expansion](https://kenney.nl/assets/ui-pack-rpg-expansion)     | Kenney.nl  | CC0 1.0   | Inset panel (reserved for later) |
-| `public/assets/fonts/KenneyFuture.ttf`    | [Kenney UI Pack](https://kenney.nl/assets/ui-pack)                                   | Kenney.nl  | CC0 1.0   | UI font ("Kenney Future")        |
-| `public/assets/structures/wall.png`       | [game-icons.net — brick-wall](https://game-icons.net/1x1/delapouite/brick-wall.html) | Delapouite | CC BY 3.0 | Fortress build tile (see note)   |
-| `public/assets/structures/gate.png`       | [game-icons.net — gate](https://game-icons.net/1x1/delapouite/gate.html)             | Delapouite | CC BY 3.0 | Fortress build tile (see note)   |
-| `public/assets/structures/tower.png`      | [game-icons.net — chess-rook](https://game-icons.net/1x1/delapouite/chess-rook.html) | Delapouite | CC BY 3.0 | Tower tile (see note)            |
-| `public/assets/structures/stronghold.png` | [game-icons.net — castle](https://game-icons.net/1x1/lorc/castle.html)               | Lorc       | CC BY 3.0 | Stronghold / capture point       |
+| Asset                                     | Source                                                                           | Author    | License | Notes                              |
+| ----------------------------------------- | -------------------------------------------------------------------------------- | --------- | ------- | ---------------------------------- |
+| `public/assets/ui/button_long_*.png`      | [Kenney UI Pack — RPG Expansion](https://kenney.nl/assets/ui-pack-rpg-expansion) | Kenney.nl | CC0 1.0 | Blue/grey long buttons + pressed   |
+| `public/assets/ui/panel_brown.png`        | [Kenney UI Pack — RPG Expansion](https://kenney.nl/assets/ui-pack-rpg-expansion) | Kenney.nl | CC0 1.0 | Nine-slice content panel           |
+| `public/assets/ui/panelInset_beige.png`   | [Kenney UI Pack — RPG Expansion](https://kenney.nl/assets/ui-pack-rpg-expansion) | Kenney.nl | CC0 1.0 | Inset panel (reserved for later)   |
+| `public/assets/fonts/KenneyFuture.ttf`    | [Kenney UI Pack](https://kenney.nl/assets/ui-pack)                               | Kenney.nl | CC0 1.0 | UI font ("Kenney Future")          |
+| `public/assets/structures/wall.png`       | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Stone tile (medievalTile_15)       |
+| `public/assets/structures/gate.png`       | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Wooden gate (medievalStructure_08) |
+| `public/assets/structures/tower.png`      | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Watchtower (medievalStructure_12)  |
+| `public/assets/structures/stronghold.png` | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Castle (medievalStructure_06)      |
 
-> **game-icons.net attribution (CC BY 3.0):** Icons by Lorc and Delapouite,
-> available at [game-icons.net](https://game-icons.net), licensed under
-> [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). Modified for this
-> project: black background made transparent, downscaled to 256×256, and tinted
-> per structure color at runtime.
+> **Structure tiles:** sourced from Kenney's Medieval RTS pack (CC0 — no
+> attribution required). Modified for this project: building sprites had their
+> transparent margins cropped so they sit centered in a grid cell; the wall uses
+> the stone tile at full size so adjacent walls read as a continuous rampart.
 
 ## Approved sources
 
