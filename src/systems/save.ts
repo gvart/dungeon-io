@@ -20,8 +20,12 @@ export const SAVE_KEY = 'fortgion.save.v2';
 const SAVE_KEY_V1 = 'fortgion.save.v1';
 export const SAVE_VERSION = 2;
 
-/** One placed structure: `[col, row, structureId]`. */
-type PlacedTuple = [number, number, string];
+/**
+ * One placed structure: `[col, row, structureId]`, or `[col, row, structureId,
+ * build]` when it is still under construction (`build` in `[0, 1)`). Completed
+ * structures omit the 4th element, so older length-3 saves load unchanged.
+ */
+type PlacedTuple = [number, number, string] | [number, number, string, number];
 
 /** Compact on-disk shape. Terrain is regenerated from `seed`, never stored. */
 export interface SaveData {
@@ -41,7 +45,12 @@ export function serialize(state: FortressState): SaveData {
   for (let row = 0; row < state.rows; row++) {
     for (let col = 0; col < state.cols; col++) {
       const cell = state.cells[indexOf(state, col, row)];
-      if (cell) placed.push([col, row, cell.structureId]);
+      if (!cell) continue;
+      if (cell.build !== undefined && cell.build < 1) {
+        placed.push([col, row, cell.structureId, cell.build]);
+      } else {
+        placed.push([col, row, cell.structureId]);
+      }
     }
   }
   return {
@@ -68,10 +77,11 @@ function isValidSave(data: unknown): data is SaveData {
   return d.placed.every(
     (p) =>
       Array.isArray(p) &&
-      p.length === 3 &&
+      (p.length === 3 || p.length === 4) &&
       typeof p[0] === 'number' &&
       typeof p[1] === 'number' &&
-      typeof p[2] === 'string'
+      typeof p[2] === 'string' &&
+      (p.length === 3 || (typeof p[3] === 'number' && Number.isFinite(p[3])))
   );
 }
 
@@ -92,10 +102,16 @@ export function deserialize(data: unknown): FortressState | null {
     cleared: cleared.filter((i) => i >= 0 && i < cols * rows),
     cells: new Array(cols * rows).fill(null),
   };
-  for (const [col, row, structureId] of placed) {
+  for (const tuple of placed) {
+    const [col, row, structureId] = tuple;
     if (col < 0 || col >= cols || row < 0 || row >= rows) continue;
     const i = indexOf(state, col, row);
-    if (state.cells[i] === null) state.cells[i] = { structureId };
+    if (state.cells[i] !== null) continue;
+    const build = tuple.length === 4 ? tuple[3] : undefined;
+    state.cells[i] =
+      build !== undefined && build < 1
+        ? { structureId, build: Math.max(0, build) }
+        : { structureId };
   }
   return state;
 }

@@ -65,18 +65,28 @@ reload the page, and the layout persists.
 
 ---
 
-## Phase 3 — Heroes & garrison
+## Phase 3 — Heroes & garrison ✅ DONE
 
 **Goal:** create heroes and station them on the fortress.
 
-- Attribute system (e.g. STR / AGI / INT / VIT) → derived stats (HP, attack, crit,
-  speed).
+- Attribute system (STR / AGI / INT / VIT) → derived stats (HP, attack, crit, move
+  speed, work speed).
 - Skill loadout, equipment slots, and star promotion / leveling.
-- Skills and heroes defined as data in `src/data`.
+- Skills, heroes, and gear defined as data in `src/data`.
 - Station heroes at defensive positions on the fortress; persist the roster.
 
 **Done when:** you can build a hero, assign attributes/skills/gear, station it, save,
 reload, and everything persists.
+
+> Expanded into a **RimWorld-style colonist layer**: heroes are mobile pawns that
+> pathfind around obstacles and perform tasks — **move, guard, assist building,
+> gather**. Heroes are **freeform** (name + allocate attributes from scratch). A
+> **starter roster** spawns on the map and **wandering recruits** arrive over time
+> (accept/reject; quality scales with fortress development). Select a pawn to open a
+> management UI (stats, skills, gear, promote, commands). The pure simulation (hero
+> model, A\* pathfinding, deterministic task tick, seedable recruiting, save) lives in
+> `src/systems` and is unit-tested. **Attacking** an arrival is deferred to Phase 4
+> (combat) — surfaced as a disabled action for now.
 
 ---
 
