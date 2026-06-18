@@ -69,11 +69,17 @@ export class Chip extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  /** Settle a release: fire onTap when armed, enabled, and released in bounds. */
+  /** Settle a release: fire onTap when armed, enabled, and released in the hit area. */
   private resolveTap(p: Phaser.Input.Pointer): void {
     if (!this.armed) return;
     this.armed = false;
-    if (this.enabled && this.getBounds().contains(p.x, p.y)) this.onTap();
+    if (!this.enabled) return;
+    // Test against the configured `chipW×chipH` hit area (not `getBounds()`,
+    // which is the union of the small child texts — see Button.resolveTap).
+    const m = this.getWorldTransformMatrix();
+    const hw = (this.chipW / 2) * Math.abs(m.scaleX);
+    const hh = (this.chipH / 2) * Math.abs(m.scaleY);
+    if (Math.abs(p.x - m.tx) <= hw && Math.abs(p.y - m.ty) <= hh) this.onTap();
   }
 
   setSelected(active: boolean): this {

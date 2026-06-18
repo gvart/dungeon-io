@@ -129,13 +129,20 @@ export class Button extends Phaser.GameObjects.Container {
     scene.add.existing(this);
   }
 
-  /** Settle a release: fire onClick when armed and released within bounds. */
+  /** Settle a release: fire onClick when armed and released within the hit area. */
   private resolveTap(p: Phaser.Input.Pointer): void {
     this.setScale(1);
     this.showPressed(false);
     if (!this.armed) return;
     this.armed = false;
-    if (this.getBounds().contains(p.x, p.y)) this.onClick();
+    // Test the release against the configured button rectangle (the same
+    // `btnW×btnH` hit area), NOT `getBounds()` — a Container's bounds are the
+    // union of its children, so a Graphics/icon or short text label would shrink
+    // the tap zone to a tiny inner region and most taps would miss.
+    const m = this.getWorldTransformMatrix();
+    const hw = (this.btnW / 2) * Math.abs(m.scaleX);
+    const hh = (this.btnH / 2) * Math.abs(m.scaleY);
+    if (Math.abs(p.x - m.tx) <= hw && Math.abs(p.y - m.ty) <= hh) this.onClick();
   }
 
   /** Swap to the pressed/unpressed visual (independent of the armed state). */
