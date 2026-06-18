@@ -29,6 +29,7 @@ export class FortressScene extends BaseScene {
   private gridOriginX = 0;
   private structGfx!: Phaser.GameObjects.Graphics;
   private labels: Phaser.GameObjects.Text[] = [];
+  private sprites: Phaser.GameObjects.Image[] = [];
   private resourceText!: Phaser.GameObjects.Text;
 
   constructor() {
@@ -146,6 +147,8 @@ export class FortressScene extends BaseScene {
     this.structGfx.clear();
     this.labels.forEach((t) => t.destroy());
     this.labels = [];
+    this.sprites.forEach((s) => s.destroy());
+    this.sprites = [];
 
     const pad = 6;
     const size = CELL - pad * 2;
@@ -157,6 +160,14 @@ export class FortressScene extends BaseScene {
         if (!def) continue;
         const { x, y } = this.cellCenter(col, row);
         const isCenter = def.category === 'center';
+
+        // Prefer real sprite art when the texture loaded; otherwise fall back to
+        // the drawn colored shape + label so the build mode always renders.
+        if (def.texKey && this.textures.exists(def.texKey)) {
+          const sprite = this.add.image(x, y, def.texKey).setDisplaySize(size, size).setOrigin(0.5);
+          this.sprites.push(sprite);
+          continue;
+        }
 
         this.structGfx.fillStyle(def.fillColor, isCenter ? 1 : 0.92);
         this.structGfx.lineStyle(isCenter ? 3 : 2, isCenter ? HEX.gold : HEX.panelBorder, 1);

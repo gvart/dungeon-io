@@ -51,6 +51,7 @@ export const STRUCTURES: Record<string, StructureDef> = {
     category: 'center',
     cost: 0,
     fillColor: HEX.gold,
+    texKey: 'struct-stronghold',
     desc: 'The heart of the fortress. Hold it.',
   },
   wall: {
@@ -59,6 +60,7 @@ export const STRUCTURES: Record<string, StructureDef> = {
     category: 'wall',
     cost: 10,
     fillColor: 0x6b7280,
+    texKey: 'struct-wall',
     desc: 'Blocks enemy advance.',
   },
   gate: {
@@ -67,6 +69,7 @@ export const STRUCTURES: Record<string, StructureDef> = {
     category: 'gate',
     cost: 20,
     fillColor: 0x8b5a2b,
+    texKey: 'struct-gate',
     desc: 'A defended passage in the wall.',
   },
   tower: {
@@ -75,6 +78,7 @@ export const STRUCTURES: Record<string, StructureDef> = {
     category: 'tower',
     cost: 35,
     fillColor: 0x4f6d9e,
+    texKey: 'struct-tower',
     desc: 'High ground for defenders.',
   },
 };
