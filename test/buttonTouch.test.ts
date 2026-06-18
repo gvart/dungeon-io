@@ -77,6 +77,23 @@ describe('Play button navigation (touch)', () => {
     game.destroy(true);
   }, 15000);
 
+  it('navigates on a tap near the button edge (not just dead-center)', async () => {
+    // Regression: resolveTap once gated on `getBounds()` (the union of child
+    // bounds ≈ the small text label), so taps away from center silently missed —
+    // "press 10-25 times until it works". The hit area is the full 360×96 button.
+    const game = await bootGame();
+    await pump(game, 400);
+    const btn = playButton(game);
+
+    // 150px right of center: inside the 360-wide button, well outside the label.
+    btn.emit('pointerdown');
+    btn.emit('pointerup', pointerAt(CENTER.x + 150, CENTER.y));
+    await pump(game, 600);
+
+    expect(game.scene.isActive('Fortress')).toBe(true);
+    game.destroy(true);
+  }, 15000);
+
   it('navigates even when a stray pointerout fires mid-tap', async () => {
     const game = await bootGame();
     await pump(game, 400);
