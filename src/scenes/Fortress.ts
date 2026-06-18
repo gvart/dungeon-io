@@ -162,9 +162,15 @@ export class FortressScene extends BaseScene {
         const isCenter = def.category === 'center';
 
         // Prefer real sprite art when the texture loaded; otherwise fall back to
-        // the drawn colored shape + label so the build mode always renders.
+        // the drawn colored shape + label so the build mode always renders. The
+        // icons are white silhouettes, so tint them with the structure color to
+        // keep the wall/gate/tower/stronghold coding.
         if (def.texKey && this.textures.exists(def.texKey)) {
-          const sprite = this.add.image(x, y, def.texKey).setDisplaySize(size, size).setOrigin(0.5);
+          const sprite = this.add
+            .image(x, y, def.texKey)
+            .setDisplaySize(size, size)
+            .setOrigin(0.5)
+            .setTint(def.fillColor);
           this.sprites.push(sprite);
           continue;
         }
