@@ -3,7 +3,7 @@ import './phaserHeadless';
 import { describe, it, expect } from 'vitest';
 import Phaser from 'phaser';
 import { FortressScene } from '../src/scenes/Fortress';
-import { GAME_HEIGHT, GAME_WIDTH } from '../src/main';
+import { GAME_HEIGHT, GAME_WIDTH } from '../src/dimensions';
 import { isWalkable } from '../src/systems/pathfind';
 import { commandMove } from '../src/systems/task';
 import type { FortressState } from '../src/systems/grid';
