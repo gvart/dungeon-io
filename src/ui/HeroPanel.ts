@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GAME_HEIGHT } from '../main';
 import { COLORS, FONT, FONT_FAMILY, HEX } from './theme';
 import { Chip } from './Chip';
 import { makeButton, type Button } from './Button';
@@ -13,9 +14,11 @@ export interface HeroPanelConfig {
   onClose: () => void;
 }
 
+/** Bottom sheet: pin to the bottom of the device-aspect canvas (see BuildPanel). */
+const BOTTOM_SHIFT = GAME_HEIGHT - 1280;
 /** Panel screen band (design px) — taps here are UI, not map taps. */
-export const HERO_PANEL_TOP = 660;
-const PANEL_BOTTOM = 1070;
+export const HERO_PANEL_TOP = 660 + BOTTOM_SHIFT;
+const PANEL_BOTTOM = 1070 + BOTTOM_SHIFT;
 const PANEL_X = 12;
 const PANEL_W = 696;
 

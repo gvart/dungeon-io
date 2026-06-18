@@ -31,6 +31,18 @@ license requires it). Record each asset here before committing it.
 > **Terrain tiles:** the 64×64 ground/road/obstacle/water tiles are copied
 > unmodified from the same pack and stamped into the procedurally-generated map.
 
+## Hero characters
+
+| Asset                                 | Source                                                                         | Author    | License | Notes                                  |
+| ------------------------------------- | ------------------------------------------------------------------------------ | --------- | ------- | -------------------------------------- |
+| `public/assets/characters/heroes.png` | [Kenney — Roguelike Characters](https://kenney.nl/assets/roguelike-characters) | Kenney.nl | CC0 1.0 | 16×16 top-down pawns, 1px tile spacing |
+
+> **Hero pawns:** the on-map heroes use this top-down character spritesheet
+> (`roguelikeChar_transparent.png` from the pack, saved as `heroes.png`). Loaded as
+> a 16×16 spritesheet with 1px spacing; `Preload` builds idle/walk animations and
+> `HeroSprite` tints each pawn for variety. The file is **optional** — if it's
+> missing the game falls back to drawn colored discs, so it still builds and runs.
+
 ## Approved sources
 
 - [Kenney.nl](https://kenney.nl) — CC0 sprite / UI / audio packs

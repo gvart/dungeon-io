@@ -59,6 +59,13 @@ export const TEX = {
   btnGrey: 'btn-grey',
   btnGreyPressed: 'btn-grey-pressed',
   panel: 'panel-brown',
+  heroSheet: 'hero-sheet',
+} as const;
+
+/** Hero pawn animation keys (built in Preload from {@link TEX.heroSheet}). */
+export const ANIM = {
+  heroIdle: 'hero-idle',
+  heroWalk: 'hero-walk',
 } as const;
 
 /**

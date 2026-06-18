@@ -1,12 +1,11 @@
 import Phaser from 'phaser';
+import { GAME_HEIGHT } from '../main';
 import { COLORS, FONT, FONT_FAMILY, HEX } from '../ui/theme';
 import { makeButton, type Button } from '../ui/Button';
 import { BuildPanel, type BuildSelection, PANEL_TOP } from '../ui/BuildPanel';
 import { HeroPanel, HERO_PANEL_TOP, type HeroCommand } from '../ui/HeroPanel';
-import { HeroBuilder } from '../ui/HeroBuilder';
 import { ArrivalPrompt, ARRIVAL_TOP, ARRIVAL_BOTTOM } from '../ui/ArrivalPrompt';
 import { getStructure } from '../data/structures';
-import { type Attributes } from '../data/attributes';
 import {
   clearObstacle,
   type FortressState,
@@ -19,13 +18,7 @@ import {
 } from '../systems/grid';
 import { generateTerrain, isClearable, terrainAt, type TerrainType } from '../systems/terrain';
 import { loadOrCreateFortress, saveFortress } from '../systems/save';
-import {
-  allocateAttributes,
-  createStarterRoster,
-  type Hero,
-  makePlayerHero,
-  promote,
-} from '../systems/hero';
+import { createStarterRoster, type Hero, promote } from '../systems/hero';
 import {
   commandAssist,
   commandGather,
@@ -51,13 +44,12 @@ const DRAG_THRESHOLD = 12;
 const TAP_MAX_MS = 350;
 /** UI bands (design px): taps here are UI, never map taps. */
 const HEADER_BOTTOM = 150;
-const FOOTER_TOP = 1080;
+/** Footer is pinned to the bottom of the device-aspect canvas. */
+const FOOTER_TOP = GAME_HEIGHT - 200;
 /** Fixed simulation step (ms) — the deterministic world tick runs at 10 Hz. */
 const STEP_MS = 100;
 /** Max catch-up steps per frame; excess backlog is dropped (no spiral of death). */
 const MAX_STEPS_PER_FRAME = 5;
-/** Resource cost to create a freeform hero. */
-const HERO_COST = 40;
 /** Resources auto-saved at most this often (sim ms) while heroes work. */
 const SAVE_INTERVAL_MS = 4000;
 /** Pawn radius in pixels. */
@@ -96,7 +88,6 @@ export class FortressScene extends BaseScene {
   private heroWorld!: HeroWorld;
   private heroSprites = new Map<string, HeroSprite>();
   private heroPanel!: HeroPanel;
-  private heroBuilder!: HeroBuilder;
   private arrivalPrompt!: ArrivalPrompt;
   private footerButtons: Button[] = [];
   private selectedHeroId: string | null = null;
@@ -471,28 +462,6 @@ export class FortressScene extends BaseScene {
     }
   }
 
-  private createHero(name: string, attr: Attributes): void {
-    if (this.state.resources < HERO_COST) return;
-    // Defensive: the builder constrains allocation, but validate before committing.
-    const valid = allocateAttributes(attr);
-    if (!valid) return;
-    const id = `hero-${Date.now().toString(36)}-${this.heroWorld.heroes.length}`;
-    const { col, row } = this.spiralFreeCell((c, r) =>
-      this.heroWorld.heroes.some((h) => h.col === c && h.row === r)
-    );
-    const hero = makePlayerHero(id, name, valid, col, row);
-    this.state.resources -= HERO_COST;
-    this.heroWorld.heroes.push(hero);
-    const sprite = new HeroSprite(this, hero, HERO_RADIUS);
-    this.mapLayer.add(sprite);
-    this.heroSprites.set(hero.id, sprite);
-    this.heroBuilder.close();
-    this.updateHud();
-    this.syncHeroes();
-    saveHeroes(this.heroWorld);
-    saveFortress(this.state);
-  }
-
   // --- UI -----------------------------------------------------------------
 
   private buildUi(): void {
@@ -520,70 +489,35 @@ export class FortressScene extends BaseScene {
     });
     this.uiLayer.add(this.heroPanel.root);
 
-    this.heroBuilder = new HeroBuilder(this, {
-      cost: HERO_COST,
-      onConfirm: (name, attr) => this.createHero(name, attr),
-      onCancel: () => this.heroBuilder.close(),
-    });
-    this.uiLayer.add(this.heroBuilder.root);
-
     this.arrivalPrompt = new ArrivalPrompt(this, {
       onAccept: () => this.handleAcceptArrival(),
       onReject: () => this.handleRejectArrival(),
     });
     this.uiLayer.add(this.arrivalPrompt.root);
 
-    const build = makeButton(this, {
-      x: this.cx - 175,
-      y: 1120,
-      label: 'Build',
-      variant: 'primary',
-      width: 330,
-      height: 84,
-      onClick: () => this.guardUi(() => this.toggleBuild()),
-    });
-    const newHero = makeButton(this, {
-      x: this.cx + 175,
-      y: 1120,
-      label: 'New Hero',
-      variant: 'primary',
-      width: 330,
-      height: 84,
-      onClick: () => this.guardUi(() => this.openHeroBuilder()),
-    });
+    const footerY = GAME_HEIGHT - 100;
     const back = makeButton(this, {
-      x: this.cx - 175,
-      y: 1210,
+      x: this.cx - 90,
+      y: footerY,
       label: 'Back',
+      icon: 'back',
       variant: 'secondary',
-      width: 330,
+      width: 84,
       height: 84,
-      onClick: () => this.guardUi(() => this.goTo('MainMenu')),
+      onClick: () => this.goTo('MainMenu'),
     });
-    const dungeon = makeButton(this, {
-      x: this.cx + 175,
-      y: 1210,
-      label: 'Enter Dungeon',
+    const build = makeButton(this, {
+      x: this.cx + 90,
+      y: footerY,
+      label: 'Build',
+      icon: 'build',
       variant: 'primary',
-      width: 330,
+      width: 84,
       height: 84,
-      onClick: () => this.guardUi(() => this.goTo('Dungeon')),
+      onClick: () => this.toggleBuild(),
     });
-    this.footerButtons = [build, newHero, back, dungeon];
+    this.footerButtons = [back, build];
     this.uiLayer.add(this.footerButtons);
-  }
-
-  /** Ignore footer taps while the modal hero builder is open. */
-  private guardUi(action: () => void): void {
-    if (this.heroBuilder.isOpen()) return;
-    action();
-  }
-
-  private openHeroBuilder(): void {
-    if (this.buildPanel.isOpen()) this.toggleBuild();
-    this.deselectHero();
-    this.heroBuilder.setAffordable(this.state.resources >= HERO_COST);
-    this.heroBuilder.open();
   }
 
   private toggleBuild(): void {
@@ -651,7 +585,6 @@ export class FortressScene extends BaseScene {
   }
 
   private isPointerOverUI(p: Phaser.Input.Pointer): boolean {
-    if (this.heroBuilder.isOpen()) return true; // full-screen modal
     if (p.y < HEADER_BOTTOM || p.y > FOOTER_TOP) return true;
     if (this.buildPanel.isOpen() && p.y >= PANEL_TOP) return true;
     if (this.heroPanel.isOpen() && p.y >= HERO_PANEL_TOP) return true;

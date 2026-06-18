@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GAME_HEIGHT } from '../main';
 import { COLORS, FONT, FONT_FAMILY, HEX } from './theme';
 import { Chip } from './Chip';
 import { BUILDABLE, CLEAR_COST, getStructure, levelUpCost, MAX_LEVEL } from '../data/structures';
@@ -17,9 +18,15 @@ export interface BuildPanelConfig {
   onLevelUp: () => void;
 }
 
+/**
+ * As a bottom sheet, the panel is pinned to the bottom of the (now device-aspect)
+ * canvas: shift its fixed 1280-design band down by however much taller the canvas
+ * is. `PANEL_TOP` stays the screen band Fortress tests taps against.
+ */
+const BOTTOM_SHIFT = GAME_HEIGHT - 1280;
 /** Panel screen band (design px) — taps here are UI, not map taps. */
-export const PANEL_TOP = 690;
-const PANEL_BOTTOM = 1070;
+export const PANEL_TOP = 690 + BOTTOM_SHIFT;
+const PANEL_BOTTOM = 1070 + BOTTOM_SHIFT;
 const PANEL_X = 12;
 const PANEL_W = 696;
 

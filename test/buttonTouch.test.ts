@@ -55,6 +55,14 @@ function playButton(game: Phaser.Game): Button {
   return btn;
 }
 
+/** Minimal pointer stand-in — the handlers only read `x`/`y`. */
+function pointerAt(x: number, y: number): Phaser.Input.Pointer {
+  return { x, y } as Phaser.Input.Pointer;
+}
+
+// The Play button sits at the screen center.
+const CENTER = { x: GAME_WIDTH / 2, y: GAME_HEIGHT / 2 };
+
 describe('Play button navigation (touch)', () => {
   it('navigates MainMenu -> Fortress on a clean tap', async () => {
     const game = await bootGame();
@@ -62,7 +70,7 @@ describe('Play button navigation (touch)', () => {
     const btn = playButton(game);
 
     btn.emit('pointerdown');
-    btn.emit('pointerup');
+    btn.emit('pointerup', pointerAt(CENTER.x, CENTER.y));
     await pump(game, 600);
 
     expect(game.scene.isActive('Fortress')).toBe(true);
@@ -74,9 +82,11 @@ describe('Play button navigation (touch)', () => {
     await pump(game, 400);
     const btn = playButton(game);
 
+    // The finger never left the button, but Phaser delivers the release as
+    // `pointerupoutside` after the stray `pointerout` — it must still count.
     btn.emit('pointerdown');
     btn.emit('pointerout'); // finger jitter
-    btn.emit('pointerup');
+    btn.emit('pointerupoutside', pointerAt(CENTER.x, CENTER.y));
     await pump(game, 600);
 
     expect(game.scene.isActive('Fortress')).toBe(true);
@@ -90,7 +100,7 @@ describe('Play button navigation (touch)', () => {
 
     btn.emit('pointerdown');
     btn.emit('pointerout');
-    btn.emit('pointerupoutside'); // released elsewhere -> cancel
+    btn.emit('pointerupoutside', pointerAt(CENTER.x, 40)); // released up near the title
     await pump(game, 400);
 
     expect(game.scene.isActive('Fortress')).toBe(false);

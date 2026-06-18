@@ -24,9 +24,13 @@ export class Chip extends Phaser.GameObjects.Container {
   private readonly chipH: number;
   private selected = false;
   private enabled = true;
+  /** Armed once a press starts on this chip; survives a stray pointerout. */
+  private armed = false;
+  private readonly onTap: () => void;
 
   constructor(scene: Phaser.Scene, cfg: ChipConfig) {
     super(scene, cfg.x, cfg.y);
+    this.onTap = cfg.onTap;
     this.chipW = Math.max(cfg.w, TOUCH_MIN);
     this.chipH = Math.max(cfg.h, TOUCH_MIN);
 
@@ -52,12 +56,24 @@ export class Chip extends Phaser.GameObjects.Container {
       hitAreaCallback: Phaser.Geom.Rectangle.Contains,
       useHandCursor: true,
     });
-    this.on('pointerup', () => {
-      if (this.enabled) cfg.onTap();
+    this.on('pointerdown', () => {
+      this.armed = true;
     });
+    // Same touch quirk as Button: a stray pointerout turns the release into a
+    // `pointerupoutside`, so resolve both by testing the release point against
+    // our bounds (independent of Phaser's flaky over/out tracking).
+    this.on('pointerup', (p: Phaser.Input.Pointer) => this.resolveTap(p));
+    this.on('pointerupoutside', (p: Phaser.Input.Pointer) => this.resolveTap(p));
 
     this.redraw();
     scene.add.existing(this);
+  }
+
+  /** Settle a release: fire onTap when armed, enabled, and released in bounds. */
+  private resolveTap(p: Phaser.Input.Pointer): void {
+    if (!this.armed) return;
+    this.armed = false;
+    if (this.enabled && this.getBounds().contains(p.x, p.y)) this.onTap();
   }
 
   setSelected(active: boolean): this {

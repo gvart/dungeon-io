@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../main';
-import { COLORS, FONT, FONT_FAMILY, HEX, TEX, TERRAIN_FILES } from '../ui/theme';
+import { ANIM, COLORS, FONT, FONT_FAMILY, HEX, TEX, TERRAIN_FILES } from '../ui/theme';
 import { STRUCTURES } from '../data/structures';
 
 const UI = 'assets/ui';
 const STRUCT = 'assets/structures';
 const TILES = 'assets/tiles';
+const CHARS = 'assets/characters';
 
 /**
  * Loads UI art + waits for the bundled font, showing a simple progress bar.
@@ -69,9 +70,20 @@ export class PreloadScene extends Phaser.Scene {
     for (const [key, file] of Object.entries(TERRAIN_FILES)) {
       this.load.image(key, `${TILES}/${file}`);
     }
+
+    // Hero pawn spritesheet (Kenney "Roguelike Characters", CC0 — 16×16 tiles
+    // with 1px spacing). Optional: if absent, the loaderror handler fires and
+    // HeroSprite draws its colored-disc fallback instead.
+    this.load.spritesheet(TEX.heroSheet, `${CHARS}/heroes.png`, {
+      frameWidth: 16,
+      frameHeight: 16,
+      margin: 0,
+      spacing: 1,
+    });
   }
 
   async create(): Promise<void> {
+    this.buildHeroAnims();
     // Ensure the webfont is ready before the menu renders text with it.
     try {
       await document.fonts.load(`16px ${FONT_FAMILY}`);
@@ -80,5 +92,27 @@ export class PreloadScene extends Phaser.Scene {
       // Font API unavailable or load failed — system fallback is fine.
     }
     this.scene.start('MainMenu');
+  }
+
+  /** Build hero idle/walk animations when the spritesheet loaded (else skip). */
+  private buildHeroAnims(): void {
+    if (!this.textures.exists(TEX.heroSheet)) return;
+    // Crisp upscale from 16px source to the on-map pawn size.
+    this.textures.get(TEX.heroSheet).setFilter(Phaser.Textures.FilterMode.NEAREST);
+
+    const total = this.textures.get(TEX.heroSheet).frameTotal;
+    const last = Math.max(0, Math.min(1, total - 1));
+    this.anims.create({
+      key: ANIM.heroIdle,
+      frames: [{ key: TEX.heroSheet, frame: 0 }],
+      frameRate: 1,
+      repeat: -1,
+    });
+    this.anims.create({
+      key: ANIM.heroWalk,
+      frames: this.anims.generateFrameNumbers(TEX.heroSheet, { start: 0, end: last }),
+      frameRate: 6,
+      repeat: -1,
+    });
   }
 }
