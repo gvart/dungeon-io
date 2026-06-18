@@ -59,6 +59,7 @@ export const TEX = {
   btnGrey: 'btn-grey',
   btnGreyPressed: 'btn-grey-pressed',
   panel: 'panel-brown',
+  heroSheet: 'hero-sheet',
 } as const;
 
 /**

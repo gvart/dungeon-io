@@ -6,10 +6,16 @@ import { FortressScene } from './scenes/Fortress';
 import { DungeonScene } from './scenes/Dungeon';
 import { ResultsScene } from './scenes/Results';
 
-// Portrait design resolution. The Scale Manager FITs this into the device
-// viewport, so we author against a fixed canvas and let Phaser letterbox.
+// Portrait design resolution. Width is fixed (the layout is tuned against it);
+// height is derived from the device's aspect ratio at boot so Scale.FIT fills
+// the viewport top-to-bottom instead of letterboxing on tall phones. Clamped so
+// extreme/landscape viewports still get a sane portrait canvas.
 export const GAME_WIDTH = 720;
-export const GAME_HEIGHT = 1280;
+export const GAME_HEIGHT = ((): number => {
+  if (typeof window === 'undefined' || !window.innerWidth) return 1280; // tests / SSR
+  const h = Math.round(GAME_WIDTH * (window.innerHeight / window.innerWidth));
+  return Phaser.Math.Clamp(h, 1180, 1700);
+})();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,

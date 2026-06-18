@@ -6,6 +6,7 @@ import { STRUCTURES } from '../data/structures';
 const UI = 'assets/ui';
 const STRUCT = 'assets/structures';
 const TILES = 'assets/tiles';
+const CHARS = 'assets/characters';
 
 /**
  * Loads UI art + waits for the bundled font, showing a simple progress bar.
@@ -69,9 +70,20 @@ export class PreloadScene extends Phaser.Scene {
     for (const [key, file] of Object.entries(TERRAIN_FILES)) {
       this.load.image(key, `${TILES}/${file}`);
     }
+
+    // Hero pawn spritesheet (Kenney "Roguelike Characters", CC0 — 16×16 tiles
+    // with 1px spacing). Optional: if absent, the loaderror handler fires and
+    // HeroSprite draws its colored-disc fallback instead.
+    this.load.spritesheet(TEX.heroSheet, `${CHARS}/heroes.png`, {
+      frameWidth: 16,
+      frameHeight: 16,
+      margin: 0,
+      spacing: 1,
+    });
   }
 
   async create(): Promise<void> {
+    this.configureHeroTexture();
     // Ensure the webfont is ready before the menu renders text with it.
     try {
       await document.fonts.load(`16px ${FONT_FAMILY}`);
@@ -80,5 +92,16 @@ export class PreloadScene extends Phaser.Scene {
       // Font API unavailable or load failed — system fallback is fine.
     }
     this.scene.start('MainMenu');
+  }
+
+  /**
+   * The roguelike pawns are single 16×16 tiles (one per character, no walk
+   * frames), so there are no sprite animations to build — heroes animate via a
+   * hop tween in HeroSprite. Just switch the texture to NEAREST so the upscale
+   * to the on-map pawn size stays crisp. No-op when the art is absent.
+   */
+  private configureHeroTexture(): void {
+    if (!this.textures.exists(TEX.heroSheet)) return;
+    this.textures.get(TEX.heroSheet).setFilter(Phaser.Textures.FilterMode.NEAREST);
   }
 }
