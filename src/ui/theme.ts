@@ -60,3 +60,38 @@ export const TEX = {
   btnGreyPressed: 'btn-grey-pressed',
   panel: 'panel-brown',
 } as const;
+
+/**
+ * Terrain tile texture keys → `TERRAIN_TEX[type]` lists the loaded variants for a
+ * terrain type. The renderer picks one deterministically per cell. Files live in
+ * `public/assets/tiles/`; a missing file falls back to a drawn color.
+ */
+export const TERRAIN_TEX = {
+  grass: ['tile-grass'],
+  road: ['tile-road-a', 'tile-road-b', 'tile-road-c'],
+  tree: ['tile-tree-a', 'tile-tree-b'],
+  rock: ['tile-rock-a', 'tile-rock-b'],
+  water: ['tile-water'],
+} as const;
+
+/** Map of every terrain tile key → its file (used by Preload). */
+export const TERRAIN_FILES: Record<string, string> = {
+  'tile-grass': 'grass.png',
+  'tile-road-a': 'road_a.png',
+  'tile-road-b': 'road_b.png',
+  'tile-road-c': 'road_c.png',
+  'tile-tree-a': 'tree_a.png',
+  'tile-tree-b': 'tree_b.png',
+  'tile-rock-a': 'rock_a.png',
+  'tile-rock-b': 'rock_b.png',
+  'tile-water': 'water.png',
+};
+
+/** Flat fallback colors per terrain type if a tile texture is missing. */
+export const TERRAIN_HEX = {
+  grass: 0x2c9b54,
+  road: 0xc89b50,
+  tree: 0x1f7a45,
+  rock: 0x7d8a99,
+  water: 0x8fd0e8,
+} as const;

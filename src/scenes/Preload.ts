@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../main';
-import { COLORS, FONT, FONT_FAMILY, HEX, TEX } from '../ui/theme';
+import { COLORS, FONT, FONT_FAMILY, HEX, TEX, TERRAIN_FILES } from '../ui/theme';
 import { STRUCTURES } from '../data/structures';
 
 const UI = 'assets/ui';
 const STRUCT = 'assets/structures';
+const TILES = 'assets/tiles';
 
 /**
  * Loads UI art + waits for the bundled font, showing a simple progress bar.
@@ -61,6 +62,12 @@ export class PreloadScene extends Phaser.Scene {
       if (!def.texKey) continue;
       const file = def.texKey.replace(/^struct-/, '');
       this.load.image(def.texKey, `${STRUCT}/${file}.png`);
+    }
+
+    // Terrain tiles for the procedurally-generated map. Missing files fall back
+    // to flat terrain colors (see loaderror handler above).
+    for (const [key, file] of Object.entries(TERRAIN_FILES)) {
+      this.load.image(key, `${TILES}/${file}`);
     }
   }
 

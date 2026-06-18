@@ -5,12 +5,32 @@
  * scene renders this state and calls these helpers in response to taps; the save
  * system serializes it. Cells are stored in a flat array indexed
  * `row * cols + col`.
+ *
+ * Terrain (grass/road/tree/rock/water) is *derived from a seed* and passed in to
+ * the build-rule helpers rather than stored on the state — only the player's
+ * progress (placed structures, cleared obstacles, level, resources, seed) is
+ * persisted. Building is allowed on open ground or on a cleared obstacle cell.
  */
 
-import { CENTER_ID, getStructure, STARTING_RESOURCES } from '../data/structures';
+import {
+  CLEAR_COST,
+  getStructure,
+  levelUpCost,
+  MAX_LEVEL,
+  STARTING_RESOURCES,
+} from '../data/structures';
+import { randomSeed } from './rng';
+import {
+  isBuildable,
+  isClearable,
+  MAP_COLS,
+  MAP_ROWS,
+  terrainAt,
+  type TerrainType,
+} from './terrain';
 
-export const GRID_COLS = 7;
-export const GRID_ROWS = 9;
+export const GRID_COLS = MAP_COLS;
+export const GRID_ROWS = MAP_ROWS;
 
 /** A grid cell: either empty (`null`) or holding one structure. */
 export type FortressCell = { structureId: string } | null;
@@ -19,17 +39,13 @@ export interface FortressState {
   cols: number;
   rows: number;
   resources: number;
+  /** Fortress level; raised with resources to unlock higher-tier structures. */
+  level: number;
+  /** Seed the terrain is generated from (deterministic, so we never store it). */
+  seed: number;
+  /** Flat indices of obstacle cells the player has cleared to open ground. */
+  cleared: number[];
   cells: FortressCell[];
-}
-
-/** Column of the auto-placed capture center. */
-export function centerCol(cols: number): number {
-  return Math.floor(cols / 2);
-}
-
-/** Row of the auto-placed capture center. */
-export function centerRow(rows: number): number {
-  return Math.floor(rows / 2);
 }
 
 /** Flat-array index for a cell, no bounds checking. */
@@ -47,49 +63,75 @@ export function getCell(state: FortressState, col: number, row: number): Fortres
   return state.cells[indexOf(state, col, row)];
 }
 
-/** True if (col,row) is the indestructible capture center. */
-export function isCenterCell(state: FortressState, col: number, row: number): boolean {
-  return col === centerCol(state.cols) && row === centerRow(state.rows);
+/** Whether the obstacle at (col,row) has been cleared to open ground. */
+export function isCleared(state: FortressState, col: number, row: number): boolean {
+  return state.cleared.includes(indexOf(state, col, row));
 }
 
-/** A fresh fortress: empty grid with the capture center placed and full resources. */
-export function createInitialFortress(): FortressState {
+/** True if any cell holds the given structure id (used for `unique` defs). */
+export function hasStructure(state: FortressState, id: string): boolean {
+  return state.cells.some((c) => c?.structureId === id);
+}
+
+/** A fresh fortress: empty grid, a random terrain seed, level 1, full resources. */
+export function createInitialFortress(seed: number = randomSeed()): FortressState {
   const cols = GRID_COLS;
   const rows = GRID_ROWS;
-  const state: FortressState = {
+  return {
     cols,
     rows,
     resources: STARTING_RESOURCES,
+    level: 1,
+    seed,
+    cleared: [],
     cells: new Array<FortressCell>(cols * rows).fill(null),
   };
-  state.cells[indexOf(state, centerCol(cols), centerRow(rows))] = { structureId: CENTER_ID };
-  return state;
 }
 
-/**
- * Whether `defId` can be placed at (col,row): in bounds, not the center cell,
- * the cell is empty, the def exists and is affordable.
- */
-export function canPlace(state: FortressState, col: number, row: number, defId: string): boolean {
-  if (!inBounds(state, col, row)) return false;
-  if (isCenterCell(state, col, row)) return false;
-  if (getCell(state, col, row) !== null) return false;
-  const def = getStructure(defId);
-  if (!def || def.category === 'center') return false;
-  return state.resources >= def.cost;
-}
-
-/**
- * Place a structure, deducting its cost. Mutates and returns `state`; the
- * boolean reports whether the placement happened.
- */
-export function placeStructure(
+/** Whether a cell is open enough to build on: open ground or a cleared obstacle. */
+export function isCellBuildable(
   state: FortressState,
+  terrain: readonly TerrainType[],
+  col: number,
+  row: number
+): boolean {
+  const type = terrainAt(terrain, state.cols, col, row);
+  return isBuildable(type) || isCleared(state, col, row);
+}
+
+/**
+ * Whether `defId` can be placed at (col,row): in bounds, the cell is empty, the
+ * terrain is buildable (or cleared), the def exists and is affordable, the
+ * fortress level is high enough, and any `unique` def is not already placed.
+ */
+export function canPlace(
+  state: FortressState,
+  terrain: readonly TerrainType[],
   col: number,
   row: number,
   defId: string
 ): boolean {
-  if (!canPlace(state, col, row, defId)) return false;
+  if (!inBounds(state, col, row)) return false;
+  if (getCell(state, col, row) !== null) return false;
+  if (!isCellBuildable(state, terrain, col, row)) return false;
+  const def = getStructure(defId);
+  if (!def) return false;
+  if (state.level < def.requiredLevel) return false;
+  if (def.unique && hasStructure(state, defId)) return false;
+  return state.resources >= def.cost;
+}
+
+/**
+ * Place a structure, deducting its cost. Mutates and returns whether it placed.
+ */
+export function placeStructure(
+  state: FortressState,
+  terrain: readonly TerrainType[],
+  col: number,
+  row: number,
+  defId: string
+): boolean {
+  if (!canPlace(state, terrain, col, row, defId)) return false;
   const def = getStructure(defId)!;
   state.cells[indexOf(state, col, row)] = { structureId: defId };
   state.resources -= def.cost;
@@ -97,17 +139,46 @@ export function placeStructure(
 }
 
 /**
- * Remove a structure, refunding its cost. The capture center can never be
- * removed. Mutates and returns `state`; the boolean reports whether anything
- * was removed.
+ * Remove a structure, refunding its cost. Non-removable structures (the
+ * stronghold) are refused. Mutates and returns whether anything was removed.
  */
 export function removeStructure(state: FortressState, col: number, row: number): boolean {
   if (!inBounds(state, col, row)) return false;
-  if (isCenterCell(state, col, row)) return false;
   const cell = getCell(state, col, row);
   if (cell === null) return false;
   const def = getStructure(cell.structureId);
+  if (def && def.removable === false) return false;
   state.cells[indexOf(state, col, row)] = null;
   if (def) state.resources += def.cost;
+  return true;
+}
+
+/**
+ * Clear a tree/rock obstacle, opening the cell for building. Costs resources.
+ * Water cannot be cleared. Mutates and returns whether anything was cleared.
+ */
+export function clearObstacle(
+  state: FortressState,
+  terrain: readonly TerrainType[],
+  col: number,
+  row: number
+): boolean {
+  if (!inBounds(state, col, row)) return false;
+  if (getCell(state, col, row) !== null) return false;
+  if (isCleared(state, col, row)) return false;
+  if (!isClearable(terrainAt(terrain, state.cols, col, row))) return false;
+  if (state.resources < CLEAR_COST) return false;
+  state.cleared.push(indexOf(state, col, row));
+  state.resources -= CLEAR_COST;
+  return true;
+}
+
+/** Raise the fortress level, spending resources. Returns whether it leveled up. */
+export function levelUp(state: FortressState): boolean {
+  if (state.level >= MAX_LEVEL) return false;
+  const cost = levelUpCost(state.level);
+  if (state.resources < cost) return false;
+  state.resources -= cost;
+  state.level += 1;
   return true;
 }

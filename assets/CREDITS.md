@@ -17,10 +17,19 @@ license requires it). Record each asset here before committing it.
 | `public/assets/structures/tower.png`      | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Watchtower (medievalStructure_12)  |
 | `public/assets/structures/stronghold.png` | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Castle (medievalStructure_06)      |
 
+| `public/assets/tiles/grass.png`           | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Ground base (medievalTile_57)      |
+| `public/assets/tiles/road_a/b/c.png`      | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Roads (medievalTile_03/05/07)      |
+| `public/assets/tiles/tree_a/b.png`        | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Tree obstacles (medievalTile_42/44) |
+| `public/assets/tiles/rock_a/b.png`        | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Rock obstacles (medievalTile_49/50) |
+| `public/assets/tiles/water.png`           | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Water (medievalTile_27)            |
+
 > **Structure tiles:** sourced from Kenney's Medieval RTS pack (CC0 — no
 > attribution required). Modified for this project: building sprites had their
 > transparent margins cropped so they sit centered in a grid cell; the wall uses
 > the stone tile at full size so adjacent walls read as a continuous rampart.
+>
+> **Terrain tiles:** the 64×64 ground/road/obstacle/water tiles are copied
+> unmodified from the same pack and stamped into the procedurally-generated map.
 
 ## Approved sources
 

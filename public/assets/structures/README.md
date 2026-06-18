@@ -12,7 +12,7 @@ so these are optional and can be added incrementally.
 | `wall.png`       | Wall                       | WALL          |
 | `gate.png`       | Gate                       | GATE          |
 | `tower.png`      | Tower                      | TOWER         |
-| `stronghold.png` | Stronghold (capture point) | (auto-placed) |
+| `stronghold.png` | Stronghold (capture point) | build first   |
 
 - **Format:** PNG, transparent background, square aspect (≈128×128 recommended).
 - **Naming:** must match exactly — the loader maps `texKey` `struct-<name>` to
