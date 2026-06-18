@@ -84,7 +84,7 @@ reload, and everything persists.
 > **starter roster** spawns on the map and **wandering recruits** arrive over time
 > (accept/reject; quality scales with fortress development). Select a pawn to open a
 > management UI (stats, skills, gear, promote, commands). The pure simulation (hero
-> model, A* pathfinding, deterministic task tick, seedable recruiting, save) lives in
+> model, A\* pathfinding, deterministic task tick, seedable recruiting, save) lives in
 > `src/systems` and is unit-tested. **Attacking** an arrival is deferred to Phase 4
 > (combat) — surfaced as a disabled action for now.
 

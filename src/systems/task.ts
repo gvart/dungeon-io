@@ -45,6 +45,12 @@ export interface WorldTickInput {
   dtMs: number;
 }
 
+/** Side-effects of a tick the scene needs to reflect visually. */
+export interface WorldTickResult {
+  /** Flat cell indices of gather nodes harvested out this tick (now open ground). */
+  depletedCells: number[];
+}
+
 /** Build progress per second a hero adds while assisting (at work speed 1). */
 const ASSIST_RATE = 0.2;
 /** Build progress per second a site gains on its own (no hero). */
@@ -89,11 +95,16 @@ function advanceAlongPath(hero: Hero, cols: number, speed: number, dt: number): 
   return false;
 }
 
-/** Advance every hero's task and the fortress by `dtMs`. Mutates the inputs. */
-export function tickWorld(input: WorldTickInput): void {
+/**
+ * Advance every hero's task and the fortress by `dtMs`. Mutates the inputs and
+ * returns the cells that changed in ways the renderer must reflect (harvested
+ * gather nodes that became open ground).
+ */
+export function tickWorld(input: WorldTickInput): WorldTickResult {
   const { state, heroes, nodes } = input;
   const cols = state.cols;
   const dt = input.dtMs / 1000;
+  const depletedCells: number[] = [];
 
   // 1) Passive construction trickle for every active build site.
   for (let i = 0; i < state.cells.length; i++) {
@@ -164,6 +175,7 @@ export function tickWorld(input: WorldTickInput): void {
           if (getCell(state, node.col, node.row) === null && !state.cleared.includes(idx)) {
             state.cleared.push(idx);
           }
+          depletedCells.push(idx);
           const ni = nodes.indexOf(node);
           if (ni >= 0) nodes.splice(ni, 1);
           hero.task = idleTask();
@@ -175,6 +187,8 @@ export function tickWorld(input: WorldTickInput): void {
         break;
     }
   }
+
+  return { depletedCells };
 }
 
 // --- Command helpers (assign a task, computing the path) ---------------------

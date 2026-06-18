@@ -84,4 +84,24 @@ describe('gather task', () => {
     expect(h.task.kind).toBe('idle');
     expect(s.cleared).toContain(indexOf(s, 3, 3));
   });
+
+  it('reports the depleted cell once so the renderer can erase it', () => {
+    const s = createInitialFortress(1);
+    const t = grass(s);
+    const node: GatherNode = { col: 3, row: 3, remaining: 2 };
+    const h = hero(0, 0);
+    commandGather(s, t, h, node);
+    const reported: number[] = [];
+    for (let i = 0; i < 200; i++) {
+      const { depletedCells } = tickWorld({
+        state: s,
+        terrain: t,
+        heroes: [h],
+        nodes: [node],
+        dtMs: 100,
+      });
+      reported.push(...depletedCells);
+    }
+    expect(reported).toEqual([indexOf(s, 3, 3)]);
+  });
 });

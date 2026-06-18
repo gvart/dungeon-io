@@ -3,13 +3,16 @@ import { COLORS, FONT_FAMILY, HEX } from '../../ui/theme';
 import type { Hero } from '../../systems/hero';
 import type { TaskKind } from '../../systems/task';
 
-/** Short glyph shown under a working hero. */
+/**
+ * Short ASCII glyph shown under a working hero. Plain letters so they render in
+ * any font (the bundled "Kenney Future" lacks many symbol glyphs).
+ */
 const TASK_GLYPH: Record<TaskKind, string> = {
   idle: '',
-  move: '→',
-  guard: '⚑',
-  assistBuild: '⚒',
-  gather: '⛏',
+  move: 'M',
+  guard: 'G',
+  assistBuild: 'B',
+  gather: 'H',
 };
 
 /**

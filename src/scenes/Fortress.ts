@@ -48,6 +48,8 @@ const HEADER_BOTTOM = 150;
 const FOOTER_TOP = 1080;
 /** Fixed simulation step (ms) — the deterministic world tick runs at 10 Hz. */
 const STEP_MS = 100;
+/** Max catch-up steps per frame; excess backlog is dropped (no spiral of death). */
+const MAX_STEPS_PER_FRAME = 5;
 /** Resource cost to create a freeform hero. */
 const HERO_COST = 40;
 /** Resources auto-saved at most this often (sim ms) while heroes work. */
@@ -143,6 +145,13 @@ export class FortressScene extends BaseScene {
 
     this.initHeroWorld();
     this.createHeroSprites();
+
+    // Persist any unsaved drift (passive movement / gather / build progress) when
+    // leaving the scene — discrete actions save immediately, this catches the rest.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      saveHeroes(this.heroWorld);
+      saveFortress(this.state);
+    });
 
     this.mapCam = new MapCamera(this.cameras.main, mapW, mapH);
     this.wireInput();
@@ -316,21 +325,27 @@ export class FortressScene extends BaseScene {
   update(_t: number, dt: number): void {
     if (!this.heroWorld) return;
     this.acc += dt;
-    let stepped = false;
-    while (this.acc >= STEP_MS) {
+    let steps = 0;
+    while (this.acc >= STEP_MS && steps < MAX_STEPS_PER_FRAME) {
       this.acc -= STEP_MS;
       this.simClock += STEP_MS;
-      tickWorld({
+      const result = tickWorld({
         state: this.state,
         terrain: this.terrain,
         heroes: this.heroWorld.heroes,
         nodes: this.heroWorld.nodes,
         dtMs: STEP_MS,
       });
+      for (const idx of result.depletedCells) {
+        this.terrainView.eraseCell(idx % this.state.cols, Math.floor(idx / this.state.cols));
+      }
       tickRecruit(this.heroWorld.recruit, this.state, this.simClock);
-      stepped = true;
+      steps++;
     }
-    if (!stepped) return;
+    // Drop any backlog beyond the cap (e.g. after the tab was backgrounded) so a
+    // long frame can't queue a spiral of catch-up steps.
+    if (this.acc >= STEP_MS) this.acc = 0;
+    if (steps === 0) return;
 
     this.syncHeroes();
     this.refreshArrival();
