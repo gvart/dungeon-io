@@ -1,8 +1,11 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../main';
-import { COLORS, FONT, FONT_FAMILY, HEX, TEX } from '../ui/theme';
+import { COLORS, FONT, FONT_FAMILY, HEX, TEX, TERRAIN_FILES } from '../ui/theme';
+import { STRUCTURES } from '../data/structures';
 
 const UI = 'assets/ui';
+const STRUCT = 'assets/structures';
+const TILES = 'assets/tiles';
 
 /**
  * Loads UI art + waits for the bundled font, showing a simple progress bar.
@@ -50,6 +53,22 @@ export class PreloadScene extends Phaser.Scene {
     this.load.image(TEX.btnGrey, `${UI}/button_long_grey.png`);
     this.load.image(TEX.btnGreyPressed, `${UI}/button_long_grey_pressed.png`);
     this.load.image(TEX.panel, `${UI}/panel_brown.png`);
+
+    // Fortress structure tiles. Each def's `texKey` maps to a PNG named after the
+    // key's suffix (e.g. 'struct-wall' -> assets/structures/wall.png). Files are
+    // optional: a missing one triggers loaderror above and the Fortress scene
+    // draws its colored-shape fallback instead, so the game still runs.
+    for (const def of Object.values(STRUCTURES)) {
+      if (!def.texKey) continue;
+      const file = def.texKey.replace(/^struct-/, '');
+      this.load.image(def.texKey, `${STRUCT}/${file}.png`);
+    }
+
+    // Terrain tiles for the procedurally-generated map. Missing files fall back
+    // to flat terrain colors (see loaderror handler above).
+    for (const [key, file] of Object.entries(TERRAIN_FILES)) {
+      this.load.image(key, `${TILES}/${file}`);
+    }
   }
 
   async create(): Promise<void> {

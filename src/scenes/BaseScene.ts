@@ -11,12 +11,19 @@ export abstract class BaseScene extends Phaser.Scene {
   protected readonly cx = GAME_WIDTH / 2;
   protected readonly cy = GAME_HEIGHT / 2;
   private transitioning = false;
+  /**
+   * Additional cameras (e.g. a fixed UI camera over a pannable map) that should
+   * fade in/out together with the main camera. Subclasses push to this before
+   * calling {@link enter}.
+   */
+  protected extraCameras: Phaser.Cameras.Scene2D.Camera[] = [];
 
   /** Call from each scene's create() first. */
   protected enter(): void {
     this.transitioning = false;
     this.cameras.main.setBackgroundColor(HEX.bg);
     this.cameras.main.fadeIn(220, 11, 14, 20);
+    for (const cam of this.extraCameras) cam.fadeIn(220, 11, 14, 20);
   }
 
   /** Fade out, then start the target scene. Guarded against double-invocation. */
@@ -24,6 +31,7 @@ export abstract class BaseScene extends Phaser.Scene {
     if (this.transitioning) return;
     this.transitioning = true;
     this.input.enabled = false;
+    for (const cam of this.extraCameras) cam.fadeOut(180, 11, 14, 20);
     this.cameras.main.fadeOut(180, 11, 14, 20);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.start(key);
