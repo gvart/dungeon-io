@@ -37,9 +37,11 @@ export class HeroBuilder {
   private readonly plusChips = new Map<string, Chip>();
   private readonly minusChips = new Map<string, Chip>();
   private readonly confirm: Button;
+  private readonly cost: number;
   private opened = false;
 
   constructor(scene: Phaser.Scene, cfg: HeroBuilderConfig) {
+    this.cost = cfg.cost;
     this.root = scene.add.container(0, 0).setVisible(false).setDepth(50);
 
     const w = scene.scale.width;
@@ -172,11 +174,8 @@ export class HeroBuilder {
       })
     );
 
-    this.cost = cfg.cost;
     this.refresh();
   }
-
-  private cost = 0;
 
   isOpen(): boolean {
     return this.opened;

@@ -19,7 +19,13 @@ import {
 } from '../systems/grid';
 import { generateTerrain, isClearable, terrainAt, type TerrainType } from '../systems/terrain';
 import { loadOrCreateFortress, saveFortress } from '../systems/save';
-import { createStarterRoster, type Hero, makePlayerHero, promote } from '../systems/hero';
+import {
+  allocateAttributes,
+  createStarterRoster,
+  type Hero,
+  makePlayerHero,
+  promote,
+} from '../systems/hero';
 import {
   commandAssist,
   commandGather,
@@ -56,6 +62,8 @@ const HERO_COST = 40;
 const SAVE_INTERVAL_MS = 4000;
 /** Pawn radius in pixels. */
 const HERO_RADIUS = 22;
+/** Tap-pick radius (world px) for selecting a pawn — forgiving for touch. */
+const HERO_PICK_RADIUS = 36;
 
 type Gesture = 'none' | 'pending' | 'pan' | 'pinch' | 'ui';
 
@@ -254,6 +262,11 @@ export class FortressScene extends BaseScene {
     }
   }
 
+  /** Number of fully-built structures (a build site completing changes this). */
+  private countCompleted(): number {
+    return this.state.cells.reduce((n, c) => (c && c.build === undefined ? n + 1 : n), 0);
+  }
+
   private redrawStructures(): void {
     this.structGfx.clear();
     this.labels.forEach((t) => t.destroy());
@@ -353,10 +366,7 @@ export class FortressScene extends BaseScene {
     if (this.heroPanel.isOpen()) this.heroPanel.refresh();
 
     // Redraw structures only when a build site completes (avoid per-step churn).
-    const completed = this.state.cells.reduce(
-      (n, c) => (c && c.build === undefined ? n + 1 : n),
-      0
-    );
+    const completed = this.countCompleted();
     if (completed !== this.completedCount) {
       this.completedCount = completed;
       this.redrawStructures();
@@ -371,22 +381,45 @@ export class FortressScene extends BaseScene {
 
   // --- Heroes -------------------------------------------------------------
 
+  /** Pixel center of a pawn, interpolated along its path for smooth walking. */
+  private heroRenderPos(hero: Hero): { x: number; y: number } {
+    const { x, y } = this.cellCenter(hero.col, hero.row);
+    const t = hero.task;
+    if (t.path && t.path.length > 1 && t.stepFrac) {
+      const next = t.path[1];
+      const nc = next % this.state.cols;
+      const nr = Math.floor(next / this.state.cols);
+      return {
+        x: x + (nc - hero.col) * CELL * t.stepFrac,
+        y: y + (nr - hero.row) * CELL * t.stepFrac,
+      };
+    }
+    return { x, y };
+  }
+
   /** Position every pawn (interpolated along its path) and refresh selection. */
   private syncHeroes(): void {
     for (const hero of this.heroWorld.heroes) {
       const sprite = this.heroSprites.get(hero.id);
       if (!sprite) continue;
-      let { x, y } = this.cellCenter(hero.col, hero.row);
-      const t = hero.task;
-      if (t.path && t.path.length > 1 && t.stepFrac) {
-        const next = t.path[1];
-        const nc = next % this.state.cols;
-        const nr = Math.floor(next / this.state.cols);
-        x += (nc - hero.col) * CELL * t.stepFrac;
-        y += (nr - hero.row) * CELL * t.stepFrac;
-      }
+      const { x, y } = this.heroRenderPos(hero);
       sprite.sync(x, y, hero, hero.id === this.selectedHeroId);
     }
+  }
+
+  /** Nearest pawn whose rendered position is within tap range of a world point. */
+  private heroAtPoint(wx: number, wy: number): Hero | null {
+    let best: Hero | null = null;
+    let bestDist = HERO_PICK_RADIUS;
+    for (const hero of this.heroWorld.heroes) {
+      const { x, y } = this.heroRenderPos(hero);
+      const d = Phaser.Math.Distance.Between(wx, wy, x, y);
+      if (d <= bestDist) {
+        bestDist = d;
+        best = hero;
+      }
+    }
+    return best;
   }
 
   private refreshArrival(): void {
@@ -400,10 +433,6 @@ export class FortressScene extends BaseScene {
 
   private selectedHero(): Hero | null {
     return this.heroWorld.heroes.find((h) => h.id === this.selectedHeroId) ?? null;
-  }
-
-  private heroAt(col: number, row: number): Hero | null {
-    return this.heroWorld.heroes.find((h) => h.col === col && h.row === row) ?? null;
   }
 
   private selectHero(hero: Hero): void {
@@ -444,11 +473,14 @@ export class FortressScene extends BaseScene {
 
   private createHero(name: string, attr: Attributes): void {
     if (this.state.resources < HERO_COST) return;
+    // Defensive: the builder constrains allocation, but validate before committing.
+    const valid = allocateAttributes(attr);
+    if (!valid) return;
     const id = `hero-${Date.now().toString(36)}-${this.heroWorld.heroes.length}`;
     const { col, row } = this.spiralFreeCell((c, r) =>
       this.heroWorld.heroes.some((h) => h.col === c && h.row === r)
     );
-    const hero = makePlayerHero(id, name, attr, col, row);
+    const hero = makePlayerHero(id, name, valid, col, row);
     this.state.resources -= HERO_COST;
     this.heroWorld.heroes.push(hero);
     const sprite = new HeroSprite(this, hero, HERO_RADIUS);
@@ -711,7 +743,6 @@ export class FortressScene extends BaseScene {
       let changed = false;
       if (this.selection.mode === 'build') {
         changed = placeStructure(this.state, this.terrain, col, row, this.selection.defId);
-        if (changed) this.completedCount = -1; // force a structure redraw next tick
       } else if (this.selection.mode === 'clear') {
         changed = clearObstacle(this.state, this.terrain, col, row);
         if (changed) this.terrainView.eraseCell(col, row);
@@ -719,7 +750,10 @@ export class FortressScene extends BaseScene {
         changed = removeStructure(this.state, col, row);
       }
       if (changed) {
+        // Redraw now for instant feedback and resync the completion count so the
+        // sim loop doesn't redraw again next tick.
         this.redrawStructures();
+        this.completedCount = this.countCompleted();
         this.updateHud();
         saveFortress(this.state);
       } else {
@@ -731,13 +765,15 @@ export class FortressScene extends BaseScene {
     // While the build panel is open (no tool armed), leave the map alone.
     if (this.buildPanel.isOpen()) return;
 
-    // Hero mode: aim an armed command, else select/deselect a pawn.
+    // Hero mode: aim an armed command, else select/deselect a pawn. Selection
+    // hit-tests the pawn's rendered (interpolated) position, not just its cell,
+    // so a walking pawn is still tappable.
     const armed = this.heroPanel.armedCommand();
     if (armed && this.selectedHero()) {
       this.issueCommand(armed, col, row);
       return;
     }
-    const hero = this.heroAt(col, row);
+    const hero = this.heroAtPoint(wp.x, wp.y);
     if (hero) this.selectHero(hero);
     else this.deselectHero();
   }

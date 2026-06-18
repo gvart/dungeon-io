@@ -114,10 +114,12 @@ export function tickWorld(input: WorldTickInput): WorldTickResult {
     }
   }
 
-  // 2) Each hero acts on its task.
+  // 2) Each hero acts on its task. Idle heroes do nothing, so skip the stat math.
   for (const hero of heroes) {
     const t = hero.task;
-    const speed = heroStats(hero).moveSpeed;
+    if (t.kind === 'idle') continue;
+    const stats = heroStats(hero); // one derivation reused for move + work speed
+    const speed = stats.moveSpeed;
     switch (t.kind) {
       case 'move': {
         if (advanceAlongPath(hero, cols, speed, dt)) hero.task = idleTask();
@@ -142,7 +144,7 @@ export function tickWorld(input: WorldTickInput): WorldTickResult {
           hero.task = idleTask();
           break;
         }
-        const work = heroStats(hero).workSpeed * ASSIST_RATE * dt;
+        const work = stats.workSpeed * ASSIST_RATE * dt;
         const progress = advanceBuild(state, t.targetCol, t.targetRow, work);
         if (progress >= 1) {
           grantExp(hero, EXP_PER_BUILD);
@@ -162,7 +164,7 @@ export function tickWorld(input: WorldTickInput): WorldTickResult {
           hero.task = idleTask();
           break;
         }
-        t.progress = (t.progress ?? 0) + heroStats(hero).workSpeed * GATHER_RATE * dt;
+        t.progress = (t.progress ?? 0) + stats.workSpeed * GATHER_RATE * dt;
         while (t.progress >= 1 && node.remaining > 0) {
           t.progress -= 1;
           node.remaining -= 1;
@@ -182,7 +184,6 @@ export function tickWorld(input: WorldTickInput): WorldTickResult {
         }
         break;
       }
-      case 'idle':
       default:
         break;
     }
