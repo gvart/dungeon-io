@@ -1,21 +1,11 @@
 import Phaser from 'phaser';
+import { GAME_HEIGHT, GAME_WIDTH } from './dimensions';
 import { BootScene } from './scenes/Boot';
 import { PreloadScene } from './scenes/Preload';
 import { MainMenuScene } from './scenes/MainMenu';
 import { FortressScene } from './scenes/Fortress';
 import { DungeonScene } from './scenes/Dungeon';
 import { ResultsScene } from './scenes/Results';
-
-// Portrait design resolution. Width is fixed (the layout is tuned against it);
-// height is derived from the device's aspect ratio at boot so Scale.FIT fills
-// the viewport top-to-bottom instead of letterboxing on tall phones. Clamped so
-// extreme/landscape viewports still get a sane portrait canvas.
-export const GAME_WIDTH = 720;
-export const GAME_HEIGHT = ((): number => {
-  if (typeof window === 'undefined' || !window.innerWidth) return 1280; // tests / SSR
-  const h = Math.round(GAME_WIDTH * (window.innerHeight / window.innerWidth));
-  return Phaser.Math.Clamp(h, 1180, 1700);
-})();
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,

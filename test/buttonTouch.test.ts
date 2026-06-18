@@ -5,7 +5,7 @@ import Phaser from 'phaser';
 import { MainMenuScene } from '../src/scenes/MainMenu';
 import { FortressScene } from '../src/scenes/Fortress';
 import { Button } from '../src/ui/Button';
-import { GAME_HEIGHT, GAME_WIDTH } from '../src/main';
+import { GAME_HEIGHT, GAME_WIDTH } from '../src/dimensions';
 
 /**
  * Regression test for the "press Play, nothing happens" bug: on a touch screen a
