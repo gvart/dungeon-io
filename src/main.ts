@@ -16,10 +16,12 @@ const config: Phaser.Types.Core.GameConfig = {
   parent: 'game',
   backgroundColor: '#0b0e14',
   scale: {
+    parent: 'game',
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
+    expandParent: true,
   },
   // Pixel-art friendly defaults; flip to false later if using smooth art.
   pixelArt: false,
@@ -30,5 +32,13 @@ const config: Phaser.Types.Core.GameConfig = {
 // import scenes for their GAME_WIDTH/HEIGHT constants (which evaluates this
 // module) and boot their own headless game, without a stray game booting here.
 if (typeof document !== 'undefined' && document.getElementById('game')) {
-  new Phaser.Game(config);
+  const game = new Phaser.Game(config);
+  // Mobile browsers settle their viewport (address bar) after load; refresh the
+  // Scale Manager so the canvas bounds used for input mapping aren't stale.
+  game.events.once(Phaser.Core.Events.READY, () => {
+    const refresh = () => game.scale.refresh();
+    setTimeout(refresh, 250);
+    window.addEventListener('orientationchange', () => setTimeout(refresh, 100));
+    window.addEventListener('pageshow', refresh);
+  });
 }

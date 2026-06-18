@@ -10,15 +10,19 @@ import { COLORS, FONT, FONT_FAMILY, HEX, TEX } from '../ui/theme';
 export abstract class BaseScene extends Phaser.Scene {
   protected readonly cx = GAME_WIDTH / 2;
   protected readonly cy = GAME_HEIGHT / 2;
+  private transitioning = false;
 
   /** Call from each scene's create() first. */
   protected enter(): void {
+    this.transitioning = false;
     this.cameras.main.setBackgroundColor(HEX.bg);
     this.cameras.main.fadeIn(220, 11, 14, 20);
   }
 
-  /** Fade out, then start the target scene. */
+  /** Fade out, then start the target scene. Guarded against double-invocation. */
   protected goTo(key: string): void {
+    if (this.transitioning) return;
+    this.transitioning = true;
     this.input.enabled = false;
     this.cameras.main.fadeOut(180, 11, 14, 20);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
