@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { TERRAIN_HEX, TERRAIN_TEX } from '../../ui/theme';
-import type { TerrainType } from '../../systems/terrain';
+import { ROAD_TEX, TERRAIN_HEX, TERRAIN_TEX } from '../../ui/theme';
+import { roadMask, type TerrainType } from '../../systems/terrain';
 
 /**
  * Renders the procedurally-generated terrain into a single static
@@ -8,13 +8,16 @@ import type { TerrainType } from '../../systems/terrain';
  * object is far cheaper on mobile than ~400 sprites and needs no per-object
  * camera-ignore bookkeeping (the whole layer lives in the map container).
  *
- * Each terrain type maps to one or more opaque tile textures; a deterministic
- * per-cell hash picks the variant so the map looks the same across reloads.
- * Cleared obstacles are drawn as grass. A missing tile texture falls back to a
+ * Every cell stamps a grass base first, then its feature on top: roads are
+ * autotiled from their connected neighbors (see {@link roadMask}) so they join
+ * up correctly; trees/rocks pick a deterministic variant; water replaces the
+ * base. Cleared obstacles render as grass. A missing texture falls back to a
  * flat color so the build mode always renders.
  */
 export class TerrainRenderer {
   private readonly rt?: Phaser.GameObjects.RenderTexture;
+  private readonly terrain: readonly TerrainType[];
+  private readonly cols: number;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -25,6 +28,9 @@ export class TerrainRenderer {
     private readonly cell: number,
     clearedIndices: readonly number[]
   ) {
+    this.terrain = terrain;
+    this.cols = cols;
+
     // RenderTexture allocates a GPU render target on creation; skip it when
     // there is no renderer (e.g. the HEADLESS test environment) so the scene
     // still builds. Real WebGL/Canvas runs always have a renderer.
@@ -56,8 +62,25 @@ export class TerrainRenderer {
     if (!this.rt) return;
     const x = col * this.cell;
     const y = row * this.cell;
-    const variants = TERRAIN_TEX[type];
-    const key = variants[this.variantIndex(col, row, variants.length)];
+
+    if (type === 'water') {
+      this.put(TERRAIN_TEX.water[0], type, x, y);
+      return;
+    }
+
+    // Grass base under everything else, so transparent road pieces blend in.
+    this.put(TERRAIN_TEX.grass[0], 'grass', x, y);
+    if (type === 'road') {
+      this.put(ROAD_TEX[roadMask(this.terrain, this.cols, col, row)], 'road', x, y);
+    } else if (type === 'tree' || type === 'rock') {
+      const variants = TERRAIN_TEX[type];
+      this.put(variants[this.variantIndex(col, row, variants.length)], type, x, y);
+    }
+  }
+
+  /** Draw a tile texture, or a flat fallback color if the texture is missing. */
+  private put(key: string, type: TerrainType, x: number, y: number): void {
+    if (!this.rt) return;
     if (this.scene.textures.exists(key)) {
       this.rt.draw(key, x, y);
     } else {

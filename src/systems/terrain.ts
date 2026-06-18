@@ -39,9 +39,12 @@ export function terrainAt(
 }
 
 /**
- * Generate a deterministic map: mostly grass, a pond or two of water, a couple
- * of meandering roads, and scattered clusters of trees and rocks. Trees/rocks
- * only spawn on open grass, so roads and water stay intact.
+ * Generate a deterministic map: mostly grass, a couple of orthogonally-connected
+ * roads, a pond or two of water, and scattered clusters of trees and rocks.
+ *
+ * Order matters for connectivity: roads are carved first (as 4-connected walks),
+ * then water fills around them (never over a road, which would gap the path),
+ * then trees/rocks scatter only on open grass.
  */
 export function generateTerrain(
   seed: number,
@@ -54,7 +57,13 @@ export function generateTerrain(
   const idx = (c: number, r: number): number => r * cols + c;
   const inB = (c: number, r: number): boolean => c >= 0 && c < cols && r >= 0 && r < rows;
 
-  // 1) Water ponds — circular blobs with a jittered edge.
+  // 1) Roads — orthogonal random walks, so every painted cell touches the next
+  // along an edge (never only diagonally). One runs top→bottom, one left→right;
+  // where they meet, autotiling renders a crossing/junction.
+  carveRoad(t, cols, rows, rnd, true);
+  carveRoad(t, cols, rows, rnd, false);
+
+  // 2) Water ponds — circular blobs, but never over a road.
   const ponds = 1 + Math.floor(rnd() * 2);
   for (let p = 0; p < ponds; p++) {
     const cx = Math.floor(rnd() * cols);
@@ -62,31 +71,11 @@ export function generateTerrain(
     const radius = 1.4 + rnd() * 2.2;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
+        if (t[idx(c, r)] === 'road') continue;
         const dx = c - cx;
         const dy = r - cy;
         const dist = Math.sqrt(dx * dx + dy * dy) + (rnd() - 0.5) * 1.1;
         if (dist < radius) t[idx(c, r)] = 'water';
-      }
-    }
-  }
-
-  // 2) Roads — a couple of paths that wander across the map, skipping water.
-  for (let road = 0; road < 2; road++) {
-    if (rnd() < 0.5) {
-      let c = Math.floor(rnd() * cols);
-      for (let r = 0; r < rows; r++) {
-        if (inB(c, r) && t[idx(c, r)] !== 'water') t[idx(c, r)] = 'road';
-        const step = rnd();
-        if (step < 0.25) c = Math.max(0, c - 1);
-        else if (step > 0.75) c = Math.min(cols - 1, c + 1);
-      }
-    } else {
-      let r = Math.floor(rnd() * rows);
-      for (let c = 0; c < cols; c++) {
-        if (inB(c, r) && t[idx(c, r)] !== 'water') t[idx(c, r)] = 'road';
-        const step = rnd();
-        if (step < 0.25) r = Math.max(0, r - 1);
-        else if (step > 0.75) r = Math.min(rows - 1, r + 1);
       }
     }
   }
@@ -106,4 +95,59 @@ export function generateTerrain(
   }
 
   return t;
+}
+
+/**
+ * Carve one road across the whole map. The main axis advances by one every step
+ * (so it always terminates and spans the map); an occasional sidestep shifts the
+ * cross axis and paints the bridging cell on the current line, keeping the path
+ * 4-connected (no diagonal-only gaps). `vertical` runs top->bottom, else left->right.
+ */
+function carveRoad(
+  t: TerrainType[],
+  cols: number,
+  rows: number,
+  rnd: () => number,
+  vertical: boolean
+): void {
+  const idx = (c: number, r: number): number => r * cols + c;
+  if (vertical) {
+    let c = Math.floor(rnd() * cols);
+    for (let r = 0; r < rows; r++) {
+      t[idx(c, r)] = 'road';
+      const k = rnd();
+      if (k < 0.15 && c > 0) t[idx(--c, r)] = 'road';
+      else if (k > 0.85 && c < cols - 1) t[idx(++c, r)] = 'road';
+    }
+  } else {
+    let r = Math.floor(rnd() * rows);
+    for (let c = 0; c < cols; c++) {
+      t[idx(c, r)] = 'road';
+      const k = rnd();
+      if (k < 0.15 && r > 0) t[idx(c, --r)] = 'road';
+      else if (k > 0.85 && r < rows - 1) t[idx(c, ++r)] = 'road';
+    }
+  }
+}
+
+/**
+ * Connected-neighbor key for a road cell, listing the in-bounds orthogonal
+ * neighbors that are also roads in canonical `N,E,S,W` order (e.g. `"NES"`).
+ * Used to pick the matching road tile so roads connect visually.
+ */
+export function roadMask(
+  terrain: readonly TerrainType[],
+  cols: number,
+  col: number,
+  row: number
+): string {
+  const rows = terrain.length / cols;
+  const isRoad = (c: number, r: number): boolean =>
+    c >= 0 && c < cols && r >= 0 && r < rows && terrain[r * cols + c] === 'road';
+  let mask = '';
+  if (isRoad(col, row - 1)) mask += 'N';
+  if (isRoad(col + 1, row)) mask += 'E';
+  if (isRoad(col, row + 1)) mask += 'S';
+  if (isRoad(col - 1, row)) mask += 'W';
+  return mask;
 }

@@ -17,11 +17,11 @@ license requires it). Record each asset here before committing it.
 | `public/assets/structures/tower.png`      | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Watchtower (medievalStructure_12)  |
 | `public/assets/structures/stronghold.png` | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Castle (medievalStructure_06)      |
 
-| `public/assets/tiles/grass.png`           | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Ground base (medievalTile_57)      |
-| `public/assets/tiles/road_a/b/c.png`      | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Roads (medievalTile_03/05/07)      |
-| `public/assets/tiles/tree_a/b.png`        | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Tree obstacles (medievalTile_42/44) |
-| `public/assets/tiles/rock_a/b.png`        | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Rock obstacles (medievalTile_49/50) |
-| `public/assets/tiles/water.png`           | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Water (medievalTile_27)            |
+| `public/assets/tiles/grass.png` | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts) | Kenney.nl | CC0 1.0 | Ground base (medievalTile*57) |
+| `public/assets/tiles/road*\*.png`         | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Road autotile set (medievalTile_03–07, 22–26, 31–35) |
+|`public/assets/tiles/tree_a/b.png`       | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Tree obstacles (medievalTile_42/44) |
+|`public/assets/tiles/rock_a/b.png`       | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts)                   | Kenney.nl | CC0 1.0 | Rock obstacles (medievalTile_49/50) |
+|`public/assets/tiles/water.png` | [Kenney — Medieval RTS](https://kenney.nl/assets/medieval-rts) | Kenney.nl | CC0 1.0 | Water (medievalTile_27) |
 
 > **Structure tiles:** sourced from Kenney's Medieval RTS pack (CC0 — no
 > attribution required). Modified for this project: building sprites had their
